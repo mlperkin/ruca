@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {
-  TextField,
-  Grid,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Typography,
-  Stack,
-} from "@mui/material";
+import { TextField, Grid, Button, IconButton, Tooltip } from "@mui/material";
 import { Box } from "@mui/system";
 import SearchIcon from "@mui/icons-material/Search";
 import Papa from "papaparse";
+import { saveAs } from "file-saver";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
+import MaterialReactTable from "material-react-table";
 
 const RocaPage = () => {
   const [inputValue, setInputValue] = useState("");
@@ -23,14 +14,63 @@ const RocaPage = () => {
   const [data, setData] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
 
+  const CombinedResultsCell = ({ cell, row }) => {
+    return [
+      row.original.ZIP_CODE,
+      row.original.RUCA1,
+      row.original.RUCA2,
+      row.original.STATE,
+      row.original.ZIP_TYPE,
+    ].join(", ");
+  };
+
+  const RemoveRowCell = ({ cell, row }) => {
+    return (
+      <Tooltip title="Remove">
+        <div
+          onClick={() => removeRow(row.original.ZIP_CODE)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            borderRadius: "50%",
+            padding: "8px",
+            backgroundColor: "rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <PlaylistRemoveIcon />
+        </div>
+      </Tooltip>
+    );
+  };
+
+  const columns = [
+    {
+      header: "Combined Results",
+      accessorKey: "combinedResults",
+      Cell: CombinedResultsCell,
+    },
+    { header: "Zip", accessorKey: "ZIP_CODE" },
+    { header: "RUCA1", accessorKey: "RUCA1" },
+    { header: "RUCA2", accessorKey: "RUCA2" },
+    { header: "State", accessorKey: "STATE" },
+    { header: "Zip Type", accessorKey: "ZIP_TYPE" },
+    {
+      header: "Remove",
+      accessorKey: "remove",
+      Cell: RemoveRowCell,
+    },
+  ];
+
   useEffect(() => {
+    //get the csv zip Roca data and store it
     fetch(process.env.PUBLIC_URL + "/zipRocaData.csv")
       .then((response) => response.text())
       .then((text) => {
         Papa.parse(text, {
           header: true,
           complete: (results) => {
-            console.log("Parsed results:", results.data);
             setData(results.data);
           },
           error: (err) => {
@@ -39,7 +79,43 @@ const RocaPage = () => {
         });
       })
       .catch((error) => console.error("Error fetching the CSV:", error));
+
+    const storedResultsData = localStorage.getItem("resultsData");
+    const parsedResultsData = storedResultsData
+      ? JSON.parse(storedResultsData)
+      : [];
+
+    //if stored in local storage then go ahead and load it and show in table
+    if (parsedResultsData) {
+      if (parsedResultsData.length > 0) {
+        setResults(parsedResultsData);
+      }
+    }
   }, []);
+
+  const exportToCSV = () => {
+    // Convert the results array to CSV format using papaparse
+    const csvData = Papa.unparse(results);
+
+    // Create a Blob from the CSV data
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+
+    // Use FileSaver to save the generated CSV file
+    saveAs(blob, "export.csv");
+  };
+
+  const removeRow = (zipCodeToRemove) => {
+    // Filter out the object with the matching ZIP_CODE from the results array
+    const updatedResults = results.filter(
+      (item) => item.ZIP_CODE !== zipCodeToRemove
+    );
+
+    // Update the results state with the filtered array
+    setResults(updatedResults);
+
+    // Store the updated results in localStorage as a JSON string
+    localStorage.setItem("resultsData", JSON.stringify(updatedResults));
+  };
 
   const handleChange = (event) => {
     let value = event.target.value;
@@ -58,15 +134,29 @@ const RocaPage = () => {
   const handleSubmit = (event) => {
     // Prevent the default form submission behavior
     event.preventDefault();
-    const data = getRoca(inputValue);
-    setResults(data);
+    const _data = getRoca(inputValue);
+
+    // Filter out any data that already exists in the results based on the ZIP_CODE
+    const newUniqueData = _data.filter(
+      (newItem) =>
+        !results.some(
+          (existingItem) => existingItem.ZIP_CODE === newItem.ZIP_CODE
+        )
+    );
+
+    // Use spread operator to concatenate existing results with new unique data
+    const updatedResults = [...results, ...newUniqueData];
+
+    // Update the state with the concatenated results
+    setResults(updatedResults);
+
+    // Store the updated results in localStorage as a JSON string
+    localStorage.setItem("resultsData", JSON.stringify(updatedResults));
   };
 
   const getRoca = (input) => {
     // Find matching ZIP_CODE in the data array
     const matchingData = data.filter((item) => item.ZIP_CODE === input);
-    console.log("search input", input);
-    console.log("matching data", matchingData);
     return matchingData;
   };
 
@@ -83,17 +173,11 @@ const RocaPage = () => {
         margin: "50px",
       }}
     >
-      <Typography variant="h4" component="h1" gutterBottom>
-        Roca Search
-      </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={4}>
-          <Typography variant="h6" gutterBottom>
-            Search
-          </Typography>
+        <Grid item xs={12} sm={4} md={3}>
           <form onSubmit={handleSubmit}>
             <TextField
-              label="Search"
+              label="Zip Code Search"
               variant="outlined"
               value={inputValue}
               onChange={handleChange}
@@ -113,44 +197,21 @@ const RocaPage = () => {
             </Button>
           </form>
         </Grid>
-        <Grid item xs={8}>
-          <Typography variant="h6" gutterBottom>
-            Results
-          </Typography>
-          <TableContainer component={Paper} sx={{ minWidth: 600 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Combined Results</TableCell>
-                  <TableCell>Zip</TableCell>
-                  <TableCell>State</TableCell>
-                  <TableCell>Zip Type</TableCell>
-                  <TableCell>RUCA1</TableCell>
-                  <TableCell>RUCA2</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {results.map((result) => (
-                  <TableRow key={result.ZIP_CODE}>
-                    <TableCell>
-                      {[
-                        result.ZIP_CODE,
-                        result.STATE,
-                        result.ZIP_TYPE,
-                        result.RUCA1,
-                        result.RUCA2,
-                      ].join(", ")}
-                    </TableCell>
-                    <TableCell>{result.ZIP_CODE}</TableCell>
-                    <TableCell>{result.STATE}</TableCell>
-                    <TableCell>{result.ZIP_TYPE}</TableCell>
-                    <TableCell>{result.RUCA1}</TableCell>
-                    <TableCell>{result.RUCA2}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+        <Grid item xs={12} sm={8} md={9}>
+          <Button
+            startIcon={<FileDownloadIcon />}
+            variant="contained"
+            color="primary"
+            onClick={exportToCSV}
+          >
+            Export to CSV
+          </Button>
+          <MaterialReactTable
+            title="Roca Search Table"
+            columns={columns}
+            data={results}
+            enableClickToCopy={true}
+          />
         </Grid>
       </Grid>
     </Box>
