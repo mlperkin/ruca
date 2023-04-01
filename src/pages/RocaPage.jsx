@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { TextField, Grid, Button, IconButton, Tooltip } from "@mui/material";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Alert,
+  Collapse,
+  TextField,
+  Grid,
+  Button,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { Box } from "@mui/system";
 import SearchIcon from "@mui/icons-material/Search";
 import Papa from "papaparse";
@@ -7,12 +15,25 @@ import { saveAs } from "file-saver";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 import MaterialReactTable from "material-react-table";
+import Snackbar from "@mui/material/Snackbar";
 
 const RocaPage = () => {
   const [inputValue, setInputValue] = useState("");
   const [results, setResults] = useState([]);
   const [data, setData] = useState([]);
+  const [tempSavedData, setTempSavedData] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
+  const [open, setOpen] = useState(false);
+  const [hasDuplicate, setHasDuplicate] = useState(false);
+
+  let showAllFlag = useRef(false);
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpen(false);
+  };
 
   const CombinedResultsCell = ({ cell, row }) => {
     return [
@@ -65,6 +86,8 @@ const RocaPage = () => {
 
   useEffect(() => {
     //get the csv zip Roca data and store it
+
+    //TODO -- need to store this data in localStorage to prevent fetching every time
     fetch(process.env.PUBLIC_URL + "/zipRocaData.csv")
       .then((response) => response.text())
       .then((text) => {
@@ -90,6 +113,8 @@ const RocaPage = () => {
       if (parsedResultsData.length > 0) {
         setResults(parsedResultsData);
       }
+    } else {
+      showAllFlag.current = true;
     }
   }, []);
 
@@ -137,12 +162,20 @@ const RocaPage = () => {
     const _data = getRoca(inputValue);
 
     // Filter out any data that already exists in the results based on the ZIP_CODE
-    const newUniqueData = _data.filter(
-      (newItem) =>
-        !results.some(
-          (existingItem) => existingItem.ZIP_CODE === newItem.ZIP_CODE
-        )
-    );
+    const newUniqueData = _data.filter((newItem) => {
+      const duplicate = results.some(
+        (existingItem) => existingItem.ZIP_CODE === newItem.ZIP_CODE
+      );
+
+      if (duplicate) {
+        setHasDuplicate(true);
+        setTimeout(() => {
+          setHasDuplicate(false);
+        }, 5000);
+      }
+
+      return !duplicate;
+    });
 
     // Use spread operator to concatenate existing results with new unique data
     const updatedResults = [...results, ...newUniqueData];
@@ -158,6 +191,16 @@ const RocaPage = () => {
     // Find matching ZIP_CODE in the data array
     const matchingData = data.filter((item) => item.ZIP_CODE === input);
     return matchingData;
+  };
+
+  const viewAllData = () => {
+    showAllFlag.current = !showAllFlag.current;
+    if (showAllFlag.current) {
+      setResults(data);
+      setTempSavedData(results);
+    } else {
+      setResults(tempSavedData);
+    }
   };
 
   return (
@@ -195,22 +238,94 @@ const RocaPage = () => {
             >
               Submit
             </Button>
+            <Collapse in={hasDuplicate}>
+              <Alert
+                onClose={() => setHasDuplicate(false)}
+                severity="error"
+                sx={{ width: "100%", marginTop: "10px" }}
+              >
+                This ZIP code already exists in the table!
+              </Alert>
+            </Collapse>
           </form>
         </Grid>
         <Grid item xs={12} sm={8} md={9}>
-          <Button
-            startIcon={<FileDownloadIcon />}
-            variant="contained"
-            color="primary"
-            onClick={exportToCSV}
-          >
-            Export to CSV
-          </Button>
           <MaterialReactTable
             title="Roca Search Table"
             columns={columns}
             data={results}
             enableClickToCopy={true}
+            autoWidth={true}
+            muiTablePaperProps={{
+              elevation: 2, //change the mui box shadow
+              //customize paper styles
+              sx: {
+                borderRadius: "0",
+                border: "1px solid #e0e0e0",
+              },
+            }}
+            muiTableBodyProps={{
+              sx: {
+                "& .subrow": {
+                  backgroundColor: "pink",
+                },
+              },
+            }}
+            muiTableHeadProps={{
+              sx: (theme) => ({
+                "& tr": {
+                  backgroundColor: "#4a4a4a",
+                  color: "#ffffff",
+                },
+              }),
+            }}
+            muiTableHeadCellProps={{
+              sx: (theme) => ({
+                div: {
+                  backgroundColor: "#4a4a4a",
+                  color: "#ffffff",
+                },
+              }),
+            }}
+            renderTopToolbarCustomActions={({ table }) => (
+              <Box
+                width="100%"
+                sx={{
+                  display: "flex",
+                  gap: "1rem",
+                  p: "0.5rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Button
+                  startIcon={<FileDownloadIcon />}
+                  variant="outlined"
+                  color="primary"
+                  onClick={exportToCSV}
+                >
+                  Export to CSV
+                </Button>
+                {showAllFlag.current ? (
+                  <Button
+                    startIcon={<FileDownloadIcon />}
+                    variant="outlined"
+                    color="primary"
+                    onClick={viewAllData}
+                  >
+                    Show Saved Data
+                  </Button>
+                ) : (
+                  <Button
+                    startIcon={<FileDownloadIcon />}
+                    variant="outlined"
+                    color="primary"
+                    onClick={viewAllData}
+                  >
+                    View All Data
+                  </Button>
+                )}
+              </Box>
+            )}
           />
         </Grid>
       </Grid>
