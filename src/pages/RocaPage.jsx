@@ -5,7 +5,6 @@ import {
   TextField,
   Grid,
   Button,
-  IconButton,
   Tooltip,
 } from "@mui/material";
 import { Box } from "@mui/system";
@@ -15,7 +14,8 @@ import { saveAs } from "file-saver";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 import MaterialReactTable from "material-react-table";
-import Snackbar from "@mui/material/Snackbar";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 
 const RocaPage = () => {
   const [inputValue, setInputValue] = useState("");
@@ -23,17 +23,9 @@ const RocaPage = () => {
   const [data, setData] = useState([]);
   const [tempSavedData, setTempSavedData] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
-  const [open, setOpen] = useState(false);
   const [hasDuplicate, setHasDuplicate] = useState(false);
 
   let showAllFlag = useRef(false);
-
-  const handleClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setOpen(false);
-  };
 
   const CombinedResultsCell = ({ cell, row }) => {
     return [
@@ -81,13 +73,12 @@ const RocaPage = () => {
       header: "Remove",
       accessorKey: "remove",
       Cell: RemoveRowCell,
+      enableClickToCopy: false,
     },
   ];
 
   useEffect(() => {
     //get the csv zip Roca data and store it
-
-    //TODO -- need to store this data in localStorage to prevent fetching every time
     fetch(process.env.PUBLIC_URL + "/zipRocaData.csv")
       .then((response) => response.text())
       .then((text) => {
@@ -126,7 +117,7 @@ const RocaPage = () => {
     const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
 
     // Use FileSaver to save the generated CSV file
-    saveAs(blob, "export.csv");
+    saveAs(blob, "rucaZIP_Export.csv");
   };
 
   const removeRow = (zipCodeToRemove) => {
@@ -182,6 +173,7 @@ const RocaPage = () => {
 
     // Update the state with the concatenated results
     setResults(updatedResults);
+    setInputValue("");
 
     // Store the updated results in localStorage as a JSON string
     localStorage.setItem("resultsData", JSON.stringify(updatedResults));
@@ -244,7 +236,7 @@ const RocaPage = () => {
                 severity="error"
                 sx={{ width: "100%", marginTop: "10px" }}
               >
-                This ZIP code already exists in the table!
+                This ZIP code already exists in the table.
               </Alert>
             </Collapse>
           </form>
@@ -254,8 +246,27 @@ const RocaPage = () => {
             title="Roca Search Table"
             columns={columns}
             data={results}
+            enableColumnResizing
+            columnResizeMode="onEnd" //instead of the default "onChange" mode
             enableClickToCopy={true}
             autoWidth={true}
+            enableRowOrdering
+            enableSorting={true}
+            muiTableBodyRowDragHandleProps={({ table }) => ({
+              onDragEnd: () => {
+                const { draggingRow, hoveredRow } = table.getState();
+                if (hoveredRow && draggingRow) {
+                  results.splice(
+                    hoveredRow.index,
+                    0,
+                    results.splice(draggingRow.index, 1)[0]
+                  );
+                  setResults([...results]);
+                  // Store the updated results in localStorage as a JSON string
+                  localStorage.setItem("resultsData", JSON.stringify([...results]));
+                }
+              },
+            })}
             muiTablePaperProps={{
               elevation: 2, //change the mui box shadow
               //customize paper styles
@@ -307,8 +318,8 @@ const RocaPage = () => {
                 </Button>
                 {showAllFlag.current ? (
                   <Button
-                    startIcon={<FileDownloadIcon />}
-                    variant="outlined"
+                    startIcon={<ShowChartIcon />}
+                    variant="contained"
                     color="primary"
                     onClick={viewAllData}
                   >
@@ -316,8 +327,8 @@ const RocaPage = () => {
                   </Button>
                 ) : (
                   <Button
-                    startIcon={<FileDownloadIcon />}
-                    variant="outlined"
+                    startIcon={<QueryStatsIcon />}
+                    variant="contained"
                     color="primary"
                     onClick={viewAllData}
                   >
