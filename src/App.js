@@ -1,6 +1,6 @@
 import React from "react";
 import DrawerAppBar from "./components/DrawerAppBar";
-import RocaPage from "./pages/RocaPage";
+import RucaPage from "./pages/RucaPage";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
@@ -22,7 +22,7 @@ function App() {
       <div className="App">
         <header className="App-header"></header>
         <DrawerAppBar />
-        <RocaPage />
+        <RucaPage />
       </div>
     </ThemeProvider>
   );

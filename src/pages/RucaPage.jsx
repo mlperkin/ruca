@@ -17,7 +17,7 @@ import MaterialReactTable from "material-react-table";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 
-const RocaPage = () => {
+const RucaPage = () => {
   const [inputValue, setInputValue] = useState("");
   const [results, setResults] = useState([]);
   const [data, setData] = useState([]);
@@ -78,8 +78,8 @@ const RocaPage = () => {
   ];
 
   useEffect(() => {
-    //get the csv zip Roca data and store it
-    fetch(process.env.PUBLIC_URL + "/zipRocaData.csv")
+    //get the csv zip Ruca data and store it
+    fetch(process.env.PUBLIC_URL + "/zipRucaData.csv")
       .then((response) => response.text())
       .then((text) => {
         Papa.parse(text, {
@@ -150,7 +150,7 @@ const RocaPage = () => {
   const handleSubmit = (event) => {
     // Prevent the default form submission behavior
     event.preventDefault();
-    const _data = getRoca(inputValue);
+    const _data = getRuca(inputValue);
 
     // Filter out any data that already exists in the results based on the ZIP_CODE
     const newUniqueData = _data.filter((newItem) => {
@@ -179,7 +179,7 @@ const RocaPage = () => {
     localStorage.setItem("resultsData", JSON.stringify(updatedResults));
   };
 
-  const getRoca = (input) => {
+  const getRuca = (input) => {
     // Find matching ZIP_CODE in the data array
     const matchingData = data.filter((item) => item.ZIP_CODE === input);
     return matchingData;
@@ -243,7 +243,7 @@ const RocaPage = () => {
         </Grid>
         <Grid item xs={12} sm={8} md={9}>
           <MaterialReactTable
-            title="Roca Search Table"
+            title="Ruca Search Table"
             columns={columns}
             data={results}
             enableColumnResizing
@@ -344,4 +344,4 @@ const RocaPage = () => {
   );
 };
 
-export default RocaPage;
+export default RucaPage;
