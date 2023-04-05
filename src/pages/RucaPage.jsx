@@ -6,16 +6,19 @@ import {
   Grid,
   Button,
   Tooltip,
+  IconButton,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import SearchIcon from "@mui/icons-material/Search";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 import MaterialReactTable from "material-react-table";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
+import { Workbook } from "exceljs";
+import csvIcon from "../assets/csv.png";
+import xlsxIcon from "../assets/xlsx.png";
 
 const RucaPage = () => {
   const [inputValue, setInputValue] = useState("");
@@ -24,8 +27,9 @@ const RucaPage = () => {
   const [tempSavedData, setTempSavedData] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
   const [hasDuplicate, setHasDuplicate] = useState(false);
+  const [showAllFlag, setShowAllFlag] = useState(false);
 
-  let showAllFlag = useRef(false);
+  let _showAllFlag = useRef(false);
 
   const CombinedResultsCell = ({ cell, row }) => {
     return [
@@ -69,12 +73,16 @@ const RucaPage = () => {
     { header: "RUCA2", accessorKey: "RUCA2" },
     { header: "State", accessorKey: "STATE" },
     { header: "Zip Type", accessorKey: "ZIP_TYPE" },
-    {
-      header: "Remove",
-      accessorKey: "remove",
-      Cell: RemoveRowCell,
-      enableClickToCopy: false,
-    },
+    ...(_showAllFlag.current
+      ? []
+      : [
+          {
+            header: "Remove",
+            accessorKey: "remove",
+            Cell: RemoveRowCell,
+            enableClickToCopy: false,
+          },
+        ]),
   ];
 
   useEffect(() => {
@@ -102,10 +110,14 @@ const RucaPage = () => {
     //if stored in local storage then go ahead and load it and show in table
     if (parsedResultsData) {
       if (parsedResultsData.length > 0) {
+        console.log("show saved, set flag false");
+        setShowAllFlag(false);
         setResults(parsedResultsData);
       }
     } else {
-      showAllFlag.current = true;
+      _showAllFlag.current = true;
+      console.log("show all, set flag true");
+      setShowAllFlag(true);
     }
   }, []);
 
@@ -118,6 +130,40 @@ const RucaPage = () => {
 
     // Use FileSaver to save the generated CSV file
     saveAs(blob, "rucaZIP_Export.csv");
+  };
+
+  const exportToXLSX = async () => {
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet("Sheet1");
+
+    // Write data to the worksheet
+    worksheet.columns = Object.keys(results[0]).map((key) => ({
+      header: key,
+      key,
+    }));
+    worksheet.addRows(results);
+
+    // Bold the header row
+    worksheet.getRow(1).font = { bold: true };
+
+    // Freeze the header row
+    worksheet.views = [
+      {
+        state: "frozen",
+        xSplit: 0,
+        ySplit: 1,
+        activeCell: "A2",
+      },
+    ];
+
+    // Export the workbook to a buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Save the buffer as a .xlsx file
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "rucaZIP_Export.xlsx");
   };
 
   const removeRow = (zipCodeToRemove) => {
@@ -186,12 +232,16 @@ const RucaPage = () => {
   };
 
   const viewAllData = () => {
-    showAllFlag.current = !showAllFlag.current;
-    if (showAllFlag.current) {
+    _showAllFlag.current = !_showAllFlag.current;
+    if (_showAllFlag.current) {
       setResults(data);
       setTempSavedData(results);
+      console.log("show all, set flag true");
+      setShowAllFlag(true);
     } else {
       setResults(tempSavedData);
+      console.log("show saved, set flag false");
+      setShowAllFlag(false);
     }
   };
 
@@ -250,23 +300,30 @@ const RucaPage = () => {
             columnResizeMode="onEnd" //instead of the default "onChange" mode
             enableClickToCopy={true}
             autoWidth={true}
-            enableRowOrdering
-            enableSorting={true}
-            muiTableBodyRowDragHandleProps={({ table }) => ({
-              onDragEnd: () => {
-                const { draggingRow, hoveredRow } = table.getState();
-                if (hoveredRow && draggingRow) {
-                  results.splice(
-                    hoveredRow.index,
-                    0,
-                    results.splice(draggingRow.index, 1)[0]
-                  );
-                  setResults([...results]);
-                  // Store the updated results in localStorage as a JSON string
-                  localStorage.setItem("resultsData", JSON.stringify([...results]));
-                }
-              },
-            })}
+            // enableSorting={true}
+            enableRowOrdering={!showAllFlag}
+            muiTableBodyRowDragHandleProps={({ table }) =>
+              showAllFlag
+                ? {}
+                : {
+                    onDragEnd: () => {
+                      const { draggingRow, hoveredRow } = table.getState();
+                      if (hoveredRow && draggingRow) {
+                        results.splice(
+                          hoveredRow.index,
+                          0,
+                          results.splice(draggingRow.index, 1)[0]
+                        );
+                        setResults([...results]);
+                        // Store the updated results in localStorage as a JSON string
+                        localStorage.setItem(
+                          "resultsData",
+                          JSON.stringify([...results])
+                        );
+                      }
+                    },
+                  }
+            }
             muiTablePaperProps={{
               elevation: 2, //change the mui box shadow
               //customize paper styles
@@ -308,32 +365,40 @@ const RucaPage = () => {
                   flexWrap: "wrap",
                 }}
               >
-                <Button
-                  startIcon={<FileDownloadIcon />}
-                  variant="outlined"
-                  color="primary"
-                  onClick={exportToCSV}
-                >
-                  Export to CSV
-                </Button>
-                {showAllFlag.current ? (
-                  <Button
-                    startIcon={<ShowChartIcon />}
-                    variant="contained"
-                    color="primary"
-                    onClick={viewAllData}
-                  >
-                    Show Saved Data
+                <Tooltip title={"Export to CSV"} placement="top">
+                  <Button onClick={exportToCSV}>
+                    <img
+                      src={csvIcon}
+                      alt="Export to CSV"
+                      style={{ width: "40px", height: "40px" }}
+                    />
                   </Button>
+                </Tooltip>
+                <Tooltip title={"Export to XLSX"} placement="top">
+                  <Button onClick={exportToXLSX}>
+                    <img
+                      src={xlsxIcon}
+                      alt="Export to XLSX"
+                      style={{ width: "40px", height: "40px" }}
+                    />
+                  </Button>
+                </Tooltip>
+                {showAllFlag ? (
+                  <>
+                    <Tooltip title="View Saved Data" placement="top">
+                      <IconButton color="primary" onClick={viewAllData}>
+                        <ShowChartIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </>
                 ) : (
-                  <Button
-                    startIcon={<QueryStatsIcon />}
-                    variant="contained"
-                    color="primary"
-                    onClick={viewAllData}
-                  >
-                    View All Data
-                  </Button>
+                  <>
+                    <Tooltip title="View All Data" placement="top">
+                      <IconButton color="primary" onClick={viewAllData}>
+                        <QueryStatsIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </>
                 )}
               </Box>
             )}
