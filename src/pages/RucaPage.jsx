@@ -7,6 +7,7 @@ import {
   Button,
   Tooltip,
   IconButton,
+  Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import SearchIcon from "@mui/icons-material/Search";
@@ -89,37 +90,49 @@ const RucaPage = () => {
   ];
 
   useEffect(() => {
-    //get the csv zip Ruca data and store it
-    fetch(process.env.PUBLIC_URL + "/zipRucaData.csv")
-      .then((response) => response.text())
-      .then((text) => {
-        Papa.parse(text, {
-          header: true,
-          complete: (results) => {
-            setData(results.data);
-          },
-          error: (err) => {
-            console.error("Error parsing the CSV:", err);
-          },
-        });
-      })
-      .catch((error) => console.error("Error fetching the CSV:", error));
-
-    const storedResultsData = localStorage.getItem("resultsData");
-    const parsedResultsData = storedResultsData
-      ? JSON.parse(storedResultsData)
-      : [];
-
-    //if stored in local storage then go ahead and load it and show in table
-    if (parsedResultsData) {
+    const fetchData = async () => {
+      // Get the latest version identifier from your server.
+      // You need to host the identifier somewhere, e.g., as a separate file or as part of an API response.
+      const latestVersion = await fetch(process.env.PUBLIC_URL + "/zipRucaDataVersion.txt").then((res) => res.text());
+  
+      const storedVersion = localStorage.getItem("rawDataVersion");
+      const storedRawData = localStorage.getItem("rawData");
+  
+      // If the stored version is different from the latest version, update the data.
+      if (latestVersion !== storedVersion || !storedRawData) {
+        fetch(process.env.PUBLIC_URL + "/zipRucaData.csv")
+          .then((response) => response.text())
+          .then((text) => {
+            Papa.parse(text, {
+              header: true,
+              complete: (results) => {
+                setData(results.data);
+                localStorage.setItem("rawData", JSON.stringify(results.data));
+                localStorage.setItem("rawDataVersion", latestVersion);
+              },
+              error: (err) => {
+                console.error("Error parsing the CSV:", err);
+              },
+            });
+          })
+          .catch((error) => console.error("Error fetching the CSV:", error));
+      } else {
+        setData(JSON.parse(storedRawData));
+      }
+  
+      const storedResultsData = localStorage.getItem("resultsData");
+      const parsedResultsData = storedResultsData ? JSON.parse(storedResultsData) : [];
+  
       if (parsedResultsData.length > 0) {
         setShowAllFlag(false);
         setResults(parsedResultsData);
+      } else {
+        _showAllFlag.current = true;
+        setShowAllFlag(true);
       }
-    } else {
-      _showAllFlag.current = true;
-      setShowAllFlag(true);
-    }
+    };
+  
+    fetchData();
   }, []);
 
   const exportToCSV = () => {
@@ -413,6 +426,29 @@ const RucaPage = () => {
                   flexWrap: "wrap",
                 }}
               >
+                {showAllFlag ? (
+                  <>
+                    <Tooltip title="View Saved Data" placement="top">
+                      <IconButton color="primary" onClick={viewAllData}>
+                        <ShowChartIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Typography variant={"h4"} sx={{ margin: "auto" }}>
+                      All Zips
+                    </Typography>
+                  </>
+                ) : (
+                  <>
+                    <Tooltip title="View All Data" placement="top">
+                      <IconButton color="primary" onClick={viewAllData}>
+                        <QueryStatsIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Typography variant={"h4"} sx={{ margin: "auto" }}>
+                      Your Zips
+                    </Typography>
+                  </>
+                )}
                 <Tooltip title={"Export to CSV"} placement="top">
                   <Button onClick={exportToCSV}>
                     <img
@@ -431,23 +467,7 @@ const RucaPage = () => {
                     />
                   </Button>
                 </Tooltip>
-                {showAllFlag ? (
-                  <>
-                    <Tooltip title="View Saved Data" placement="top">
-                      <IconButton color="primary" onClick={viewAllData}>
-                        <ShowChartIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </>
-                ) : (
-                  <>
-                    <Tooltip title="View All Data" placement="top">
-                      <IconButton color="primary" onClick={viewAllData}>
-                        <QueryStatsIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </>
-                )}
+                
               </Box>
             )}
           />
