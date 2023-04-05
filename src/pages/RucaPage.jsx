@@ -20,6 +20,9 @@ import ShowChartIcon from "@mui/icons-material/ShowChart";
 import { Workbook } from "exceljs";
 import csvIcon from "../assets/csv.png";
 import xlsxIcon from "../assets/xlsx.png";
+// import DescriptionIcon from "@mui/icons-material/Description";
+// import ContactPageIcon from "@mui/icons-material/ContactPage";
+// import Autocomplete from '@mui/material/Autocomplete';
 
 const RucaPage = () => {
   const [inputValue, setInputValue] = useState("");
@@ -32,6 +35,7 @@ const RucaPage = () => {
   const [zipAdded, setZipAdded] = useState(false);
   const [showAllFlag, setShowAllFlag] = useState(false);
   const [closestMatch, setClosestMatch] = useState();
+  // const [allRucaData, setAllRucaData] = useState([]);
 
   let _showAllFlag = useRef(false);
 
@@ -93,11 +97,13 @@ const RucaPage = () => {
     const fetchData = async () => {
       // Get the latest version identifier from your server.
       // You need to host the identifier somewhere, e.g., as a separate file or as part of an API response.
-      const latestVersion = await fetch(process.env.PUBLIC_URL + "/zipRucaDataVersion.txt").then((res) => res.text());
-  
+      const latestVersion = await fetch(
+        process.env.PUBLIC_URL + "/zipRucaDataVersion.txt"
+      ).then((res) => res.text());
+
       const storedVersion = localStorage.getItem("rawDataVersion");
       const storedRawData = localStorage.getItem("rawData");
-  
+
       // If the stored version is different from the latest version, update the data.
       if (latestVersion !== storedVersion || !storedRawData) {
         fetch(process.env.PUBLIC_URL + "/zipRucaData.csv")
@@ -107,6 +113,7 @@ const RucaPage = () => {
               header: true,
               complete: (results) => {
                 setData(results.data);
+                // setAllRucaData(results.data);
                 localStorage.setItem("rawData", JSON.stringify(results.data));
                 localStorage.setItem("rawDataVersion", latestVersion);
               },
@@ -118,20 +125,21 @@ const RucaPage = () => {
           .catch((error) => console.error("Error fetching the CSV:", error));
       } else {
         setData(JSON.parse(storedRawData));
+        // setAllRucaData(JSON.parse(storedRawData));
       }
-  
+
       const storedResultsData = localStorage.getItem("resultsData");
-      const parsedResultsData = storedResultsData ? JSON.parse(storedResultsData) : [];
-  
+      console.log("stored", storedResultsData);
+      const parsedResultsData = storedResultsData
+        ? JSON.parse(storedResultsData)
+        : [];
+
       if (parsedResultsData.length > 0) {
         setShowAllFlag(false);
         setResults(parsedResultsData);
-      } else {
-        _showAllFlag.current = true;
-        setShowAllFlag(true);
       }
     };
-  
+
     fetchData();
   }, []);
 
@@ -210,6 +218,8 @@ const RucaPage = () => {
   const handleSubmit = (event) => {
     // Prevent the default form submission behavior
     event.preventDefault();
+
+    if (showAllFlag) return; //do not submit if on all results
     const _data = getRuca(inputValue);
 
     // Filter out any data that already exists in the results based on the ZIP_CODE
@@ -287,6 +297,8 @@ const RucaPage = () => {
     }
   };
 
+  // Extract ZIP_CODE values from allRucaData array
+// const zipCodeOptions = allRucaData.map(item => item.ZIP_CODE);
   return (
     <Box
       sx={{
@@ -301,22 +313,41 @@ const RucaPage = () => {
       }}
     >
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4} md={3}>
+        <Grid item xs={12} md={3}>
           <form onSubmit={handleSubmit}>
-            <TextField
-              label="Zip Code Search"
-              variant="outlined"
-              value={inputValue}
-              onChange={handleChange}
-              sx={{ minWidth: 300 }}
-              inputProps={{ maxLength: 5 }} // Limit input length to 5 characters
-              helperText={validationMessage} // Display validation message
-              error={!!validationMessage} // Show error style if validation message exists
-            />
+            {showAllFlag ? (
+              <Tooltip title={"Switch back to Your Zips to search."}>
+                <TextField
+                  label="Zip Code Search"
+                  variant="outlined"
+                  value={inputValue}
+                  onChange={handleChange}
+                  disabled={showAllFlag}
+                  sx={{ minWidth: 300 }}
+                  inputProps={{ maxLength: 5 }} // Limit input length to 5 characters
+                  helperText={validationMessage} // Display validation message
+                  error={!!validationMessage} // Show error style if validation message exists
+                />
+              </Tooltip>
+            ) : (
+              <TextField
+                label="Zip Code Search"
+                variant="outlined"
+                value={inputValue}
+                onChange={handleChange}
+                disabled={showAllFlag}
+                sx={{ minWidth: 300 }}
+                inputProps={{ maxLength: 5 }} // Limit input length to 5 characters
+                helperText={validationMessage} // Display validation message
+                error={!!validationMessage} // Show error style if validation message exists
+              />
+            )}
+
             <Button
               type="submit" // Add type="submit" to the Button
               variant="contained"
               color="primary"
+              disabled={showAllFlag}
               startIcon={<SearchIcon />}
               sx={{ marginTop: "10px", marginLeft: "10px" }}
             >
@@ -429,7 +460,11 @@ const RucaPage = () => {
                 {showAllFlag ? (
                   <>
                     <Tooltip title="View Saved Data" placement="top">
-                      <IconButton color="primary" onClick={viewAllData}>
+                      <IconButton
+                        color="primary"
+                        onClick={viewAllData}
+                        sx={{ width: "60px", height: "60px" }}
+                      >
                         <ShowChartIcon />
                       </IconButton>
                     </Tooltip>
@@ -440,7 +475,11 @@ const RucaPage = () => {
                 ) : (
                   <>
                     <Tooltip title="View All Data" placement="top">
-                      <IconButton color="primary" onClick={viewAllData}>
+                      <IconButton
+                        color="primary"
+                        onClick={viewAllData}
+                        sx={{ width: "60px", height: "60px" }}
+                      >
                         <QueryStatsIcon />
                       </IconButton>
                     </Tooltip>
@@ -467,7 +506,6 @@ const RucaPage = () => {
                     />
                   </Button>
                 </Tooltip>
-                
               </Box>
             )}
           />
