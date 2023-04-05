@@ -27,7 +27,10 @@ const RucaPage = () => {
   const [tempSavedData, setTempSavedData] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
   const [hasDuplicate, setHasDuplicate] = useState(false);
+  const [zipNotFound, setZipNotFound] = useState(false);
+  const [zipAdded, setZipAdded] = useState(false);
   const [showAllFlag, setShowAllFlag] = useState(false);
+  const [closestMatch, setClosestMatch] = useState();
 
   let _showAllFlag = useRef(false);
 
@@ -110,13 +113,11 @@ const RucaPage = () => {
     //if stored in local storage then go ahead and load it and show in table
     if (parsedResultsData) {
       if (parsedResultsData.length > 0) {
-        console.log("show saved, set flag false");
         setShowAllFlag(false);
         setResults(parsedResultsData);
       }
     } else {
       _showAllFlag.current = true;
-      console.log("show all, set flag true");
       setShowAllFlag(true);
     }
   }, []);
@@ -208,7 +209,14 @@ const RucaPage = () => {
         setHasDuplicate(true);
         setTimeout(() => {
           setHasDuplicate(false);
-        }, 5000);
+        }, 15000);
+      } else {
+        //zip found and added
+        setZipNotFound(false);
+        setZipAdded(true);
+        setTimeout(() => {
+          setZipAdded(false);
+        }, 15000);
       }
 
       return !duplicate;
@@ -228,6 +236,29 @@ const RucaPage = () => {
   const getRuca = (input) => {
     // Find matching ZIP_CODE in the data array
     const matchingData = data.filter((item) => item.ZIP_CODE === input);
+
+    const findClosestZip = (data, input) => {
+      return data.reduce((closest, item) => {
+        const inputNum = parseInt(input, 10);
+        const zipNum = parseInt(item.ZIP_CODE, 10);
+        const currentDifference = Math.abs(inputNum - zipNum);
+        const closestDifference = Math.abs(
+          inputNum - parseInt(closest.ZIP_CODE, 10)
+        );
+
+        return currentDifference < closestDifference ? item : closest;
+      }, data[0]);
+    };
+
+    if (matchingData.length <= 0) {
+      let _closestMatch = findClosestZip(data, input);
+      setClosestMatch(_closestMatch.ZIP_CODE);
+
+      setZipNotFound(true);
+      setTimeout(() => {
+        setZipNotFound(false);
+      }, 15000);
+    }
     return matchingData;
   };
 
@@ -236,11 +267,9 @@ const RucaPage = () => {
     if (_showAllFlag.current) {
       setResults(data);
       setTempSavedData(results);
-      console.log("show all, set flag true");
       setShowAllFlag(true);
     } else {
       setResults(tempSavedData);
-      console.log("show saved, set flag false");
       setShowAllFlag(false);
     }
   };
@@ -287,6 +316,25 @@ const RucaPage = () => {
                 sx={{ width: "100%", marginTop: "10px" }}
               >
                 This ZIP code already exists in the table.
+              </Alert>
+            </Collapse>
+            <Collapse in={zipNotFound}>
+              <Alert
+                onClose={() => setZipNotFound(false)}
+                severity="error"
+                sx={{ width: "100%", marginTop: "10px" }}
+              >
+                This ZIP does not exist in the data. Did you mean {closestMatch}
+                ?
+              </Alert>
+            </Collapse>
+            <Collapse in={zipAdded}>
+              <Alert
+                onClose={() => setZipAdded(false)}
+                severity="success"
+                sx={{ width: "100%", marginTop: "10px" }}
+              >
+                ZIP added.
               </Alert>
             </Collapse>
           </form>
