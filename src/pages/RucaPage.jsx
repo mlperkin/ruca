@@ -20,9 +20,7 @@ import ShowChartIcon from "@mui/icons-material/ShowChart";
 import { Workbook } from "exceljs";
 import csvIcon from "../assets/csv.png";
 import xlsxIcon from "../assets/xlsx.png";
-// import DescriptionIcon from "@mui/icons-material/Description";
-// import ContactPageIcon from "@mui/icons-material/ContactPage";
-// import Autocomplete from '@mui/material/Autocomplete';
+import Autocomplete from "@mui/material/Autocomplete";
 
 const RucaPage = () => {
   const [inputValue, setInputValue] = useState("");
@@ -35,7 +33,10 @@ const RucaPage = () => {
   const [zipAdded, setZipAdded] = useState(false);
   const [showAllFlag, setShowAllFlag] = useState(false);
   const [closestMatch, setClosestMatch] = useState();
-  // const [allRucaData, setAllRucaData] = useState([]);
+  const [allRucaData, setAllRucaData] = useState([]);
+  const [tempZip, setTempZip] = useState("")
+  const [tempZipDupe, setTempZipDupe] = useState("")
+  const [tempUnfoundZip, setTempUnfoundZip] = useState("")
 
   let _showAllFlag = useRef(false);
 
@@ -113,7 +114,7 @@ const RucaPage = () => {
               header: true,
               complete: (results) => {
                 setData(results.data);
-                // setAllRucaData(results.data);
+                setAllRucaData(results.data);
                 localStorage.setItem("rawData", JSON.stringify(results.data));
                 localStorage.setItem("rawDataVersion", latestVersion);
               },
@@ -125,11 +126,10 @@ const RucaPage = () => {
           .catch((error) => console.error("Error fetching the CSV:", error));
       } else {
         setData(JSON.parse(storedRawData));
-        // setAllRucaData(JSON.parse(storedRawData));
+        setAllRucaData(JSON.parse(storedRawData));
       }
 
       const storedResultsData = localStorage.getItem("resultsData");
-      console.log("stored", storedResultsData);
       const parsedResultsData = storedResultsData
         ? JSON.parse(storedResultsData)
         : [];
@@ -201,8 +201,8 @@ const RucaPage = () => {
     localStorage.setItem("resultsData", JSON.stringify(updatedResults));
   };
 
-  const handleChange = (event) => {
-    let value = event.target.value;
+  // Update the handleChange function to accept a value directly
+  const handleChange = (value) => {
     setInputValue(value);
 
     // Check if the input value matches the 5-digit ZIP code pattern
@@ -215,9 +215,15 @@ const RucaPage = () => {
     }
   };
 
+  // Create a separate function to handle changes from the Autocomplete component
+  const handleAutocompleteChange = (event, newValue) => {
+    handleChange(newValue || ""); // Use an empty string if newValue is undefined
+  };
+
   const handleSubmit = (event) => {
     // Prevent the default form submission behavior
     event.preventDefault();
+    if(!inputValue) return;
 
     if (showAllFlag) return; //do not submit if on all results
     const _data = getRuca(inputValue);
@@ -230,15 +236,20 @@ const RucaPage = () => {
 
       if (duplicate) {
         setHasDuplicate(true);
+        setTempZipDupe(inputValue)
         setTimeout(() => {
           setHasDuplicate(false);
+          setTempZipDupe('')
         }, 15000);
       } else {
         //zip found and added
         setZipNotFound(false);
-        setZipAdded(true);
+        setHasDuplicate(false)
+        setZipAdded(true);      
+        setTempZip(inputValue)
         setTimeout(() => {
           setZipAdded(false);
+          setTempZip('')
         }, 15000);
       }
 
@@ -278,8 +289,10 @@ const RucaPage = () => {
       setClosestMatch(_closestMatch.ZIP_CODE);
 
       setZipNotFound(true);
+      setTempUnfoundZip(inputValue)
       setTimeout(() => {
         setZipNotFound(false);
+        setTempUnfoundZip('')
       }, 15000);
     }
     return matchingData;
@@ -298,7 +311,23 @@ const RucaPage = () => {
   };
 
   // Extract ZIP_CODE values from allRucaData array
-// const zipCodeOptions = allRucaData.map(item => item.ZIP_CODE);
+  const zipCodeOptions = allRucaData.map((item) => item.ZIP_CODE);
+
+  const MIN_CHARACTERS = 1;
+
+  // Define a custom filter function with a 2-minimum-character limit
+  const filterOptions = (options, { inputValue }) => {
+    // If the input value's length is less than 2 characters, return an empty array
+    if (inputValue.length < MIN_CHARACTERS) {
+      return [];
+    }
+
+    const lowerInputValue = inputValue.toLowerCase();
+    return options.filter((option) =>
+      option.toLowerCase().startsWith(lowerInputValue)
+    );
+  };
+
   return (
     <Box
       sx={{
@@ -330,16 +359,28 @@ const RucaPage = () => {
                 />
               </Tooltip>
             ) : (
-              <TextField
-                label="Zip Code Search"
-                variant="outlined"
+              <Autocomplete
+                options={zipCodeOptions} // Use extracted ZIP_CODE values as options
                 value={inputValue}
-                onChange={handleChange}
-                disabled={showAllFlag}
-                sx={{ minWidth: 300 }}
-                inputProps={{ maxLength: 5 }} // Limit input length to 5 characters
-                helperText={validationMessage} // Display validation message
-                error={!!validationMessage} // Show error style if validation message exists
+                onChange={handleAutocompleteChange} // Use the handleAutocompleteChange function
+                disableClearable
+                freeSolo // Allow any input value, not just available options
+                filterOptions={filterOptions} // Custom filter function with a minimum character limit
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Zip Code Search"
+                    variant="outlined"
+                    disabled={showAllFlag}
+                    sx={{ minWidth: 300 }}
+                    inputProps={{
+                      ...params.inputProps,
+                      maxLength: 5, // Limit input length to 5 characters
+                    }}
+                    helperText={validationMessage} // Display validation message
+                    error={!!validationMessage} // Show error style if validation message exists
+                  />
+                )}
               />
             )}
 
@@ -359,7 +400,7 @@ const RucaPage = () => {
                 severity="error"
                 sx={{ width: "100%", marginTop: "10px" }}
               >
-                This ZIP code already exists in the table.
+                Zip {tempZipDupe} already exists in Your Zips.
               </Alert>
             </Collapse>
             <Collapse in={zipNotFound}>
@@ -368,7 +409,7 @@ const RucaPage = () => {
                 severity="error"
                 sx={{ width: "100%", marginTop: "10px" }}
               >
-                This ZIP does not exist in the data. Did you mean {closestMatch}
+                Zip {tempUnfoundZip} does not exist in the data. Did you mean {closestMatch}
                 ?
               </Alert>
             </Collapse>
@@ -378,7 +419,7 @@ const RucaPage = () => {
                 severity="success"
                 sx={{ width: "100%", marginTop: "10px" }}
               >
-                ZIP added.
+                Zip {tempZip} added.
               </Alert>
             </Collapse>
           </form>
