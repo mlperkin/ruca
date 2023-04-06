@@ -483,6 +483,7 @@ const RucaPage = ({ mode }) => {
             title="Ruca Search Table"
             columns={columns}
             data={dataToRender}
+            enableStickyHeader
             enableColumnResizing
             enablePagination={true}
             columnResizeMode="onEnd" //instead of the default "onChange" mode
