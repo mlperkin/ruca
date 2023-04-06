@@ -10,9 +10,9 @@ import List from "@mui/material/List";
 import MenuIcon from "@mui/icons-material/Menu";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { useTheme } from "@mui/material/styles";
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 
 const drawerWidth = 240;
 
@@ -34,9 +34,9 @@ function DrawerAppBar(props) {
       <List>
         <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
           {theme.palette.mode === "dark" ? (
-            <Brightness7Icon />
+            <LightModeIcon />
           ) : (
-            <Brightness4Icon />
+            <DarkModeIcon />
           )}
         </IconButton>
       </List>
@@ -68,20 +68,15 @@ function DrawerAppBar(props) {
             RUCA Zip Search
           </Typography>
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
-            {/* {navItems.map((item) => (
-              <Button key={item} sx={{ color: '#fff' }}>
-                {item}
-              </Button>
-            ))} */}
             <IconButton
               sx={{ ml: 1 }}
               onClick={toggleColorMode}
               color="inherit"
             >
               {theme.palette.mode === "dark" ? (
-                <Brightness7Icon />
+                <LightModeIcon />
               ) : (
-                <Brightness4Icon />
+                <DarkModeIcon />
               )}
             </IconButton>
           </Box>

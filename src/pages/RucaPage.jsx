@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
-import SearchIcon from "@mui/icons-material/Search";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
@@ -21,12 +20,12 @@ import { Workbook } from "exceljs";
 import csvIcon from "../assets/csv.png";
 import xlsxIcon from "../assets/xlsx.png";
 import Autocomplete from "@mui/material/Autocomplete";
+import InputAdornment from "@mui/material/InputAdornment";
+import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 
-const RucaPage = () => {
+const RucaPage = ({ mode }) => {
   const [inputValue, setInputValue] = useState("");
   const [results, setResults] = useState([]);
-  const [data, setData] = useState([]);
-  const [tempSavedData, setTempSavedData] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
   const [hasDuplicate, setHasDuplicate] = useState(false);
   const [zipNotFound, setZipNotFound] = useState(false);
@@ -34,9 +33,10 @@ const RucaPage = () => {
   const [showAllFlag, setShowAllFlag] = useState(false);
   const [closestMatch, setClosestMatch] = useState();
   const [allRucaData, setAllRucaData] = useState([]);
-  const [tempZip, setTempZip] = useState("")
-  const [tempZipDupe, setTempZipDupe] = useState("")
-  const [tempUnfoundZip, setTempUnfoundZip] = useState("")
+  const [tempZip, setTempZip] = useState("");
+  const [tempZipDupe, setTempZipDupe] = useState("");
+  const [tempUnfoundZip, setTempUnfoundZip] = useState("");
+  const [highlightedZipCode, setHighlightedZipCode] = useState("");
 
   let _showAllFlag = useRef(false);
 
@@ -77,7 +77,10 @@ const RucaPage = () => {
       accessorKey: "combinedResults",
       Cell: CombinedResultsCell,
     },
-    { header: "Zip", accessorKey: "ZIP_CODE" },
+    {
+      header: "Zip",
+      accessorKey: "ZIP_CODE",
+    },
     { header: "RUCA1", accessorKey: "RUCA1" },
     { header: "RUCA2", accessorKey: "RUCA2" },
     { header: "State", accessorKey: "STATE" },
@@ -93,6 +96,33 @@ const RucaPage = () => {
           },
         ]),
   ];
+
+  // Define a function to get row props based on the row data
+  const getRowProps = ({ row }) => {
+    // Check if the row's ZIP_CODE matches the highlightedZipCode
+    if (!row.original) return;
+    const isHighlighted = row.original.ZIP_CODE === highlightedZipCode;
+
+    // Define the highlight styles based on the mode
+    const darkModeHighlightStyles = {
+      backgroundColor: isHighlighted ? "#B9352B" : "inherit", // Darker blue for dark mode
+      color: isHighlighted ? "#ffffff" : "inherit",
+    };
+    const lightModeHighlightStyles = {
+      backgroundColor: isHighlighted ? "#FDEDED" : "inherit", // Existing color for light mode
+      color: isHighlighted ? "#ffffff" : "inherit",
+    };
+
+    return {
+      // Apply the highlight style conditionally based on the mode
+      style: {
+        ...(mode === "dark"
+          ? darkModeHighlightStyles
+          : lightModeHighlightStyles),
+        transition: "background-color 1s",
+      },
+    };
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -113,7 +143,7 @@ const RucaPage = () => {
             Papa.parse(text, {
               header: true,
               complete: (results) => {
-                setData(results.data);
+                // setData(results.data);
                 setAllRucaData(results.data);
                 localStorage.setItem("rawData", JSON.stringify(results.data));
                 localStorage.setItem("rawDataVersion", latestVersion);
@@ -125,7 +155,7 @@ const RucaPage = () => {
           })
           .catch((error) => console.error("Error fetching the CSV:", error));
       } else {
-        setData(JSON.parse(storedRawData));
+        // setData(JSON.parse(storedRawData));
         setAllRucaData(JSON.parse(storedRawData));
       }
 
@@ -165,6 +195,27 @@ const RucaPage = () => {
     }));
     worksheet.addRows(results);
 
+    // Set the width of the ZIP_TYPE column
+    const zipTypeColumnIndex = worksheet.columns.findIndex(
+      (column) => column.key === "ZIP_TYPE"
+    );
+    if (zipTypeColumnIndex !== -1) {
+      const zipTypeColumn = worksheet.getColumn(zipTypeColumnIndex + 1); // +1 to account for zero-based index
+      zipTypeColumn.width = 35;
+    }
+
+    // Iterate through each row and column to format cells
+    results.forEach((row, rowIndex) => {
+      Object.keys(row).forEach((colKey, colIndex) => {
+        const cell = worksheet.getCell(rowIndex + 2, colIndex + 1); // +2 and +1 to account for header and zero-based index
+        const cellValue = row[colKey];
+        if (["RUCA1", "RUCA2"].includes(colKey) && !isNaN(cellValue)) {
+          // Set the value and data type for RUCA1 and RUCA2 columns
+          cell.value = Number(cellValue); // Convert cellValue to a number
+        }
+      });
+    });
+
     // Bold the header row
     worksheet.getRow(1).font = { bold: true };
 
@@ -202,7 +253,11 @@ const RucaPage = () => {
   };
 
   // Update the handleChange function to accept a value directly
-  const handleChange = (value) => {
+  const handleChange = (input) => {
+    // Determine if the input is an event object or a plain string value
+    const value =
+      typeof input === "object" && input.target ? input.target.value : input;
+
     setInputValue(value);
 
     // Check if the input value matches the 5-digit ZIP code pattern
@@ -217,15 +272,15 @@ const RucaPage = () => {
 
   // Create a separate function to handle changes from the Autocomplete component
   const handleAutocompleteChange = (event, newValue) => {
-    handleChange(newValue || ""); // Use an empty string if newValue is undefined
+    handleChange(newValue.value || ""); // Use an empty string if newValue is undefined
   };
 
   const handleSubmit = (event) => {
     // Prevent the default form submission behavior
     event.preventDefault();
-    if(!inputValue) return;
+    if (!inputValue) return;
 
-    if (showAllFlag) return; //do not submit if on all results
+    // if (showAllFlag) return; //do not submit if on all results
     const _data = getRuca(inputValue);
 
     // Filter out any data that already exists in the results based on the ZIP_CODE
@@ -236,20 +291,28 @@ const RucaPage = () => {
 
       if (duplicate) {
         setHasDuplicate(true);
-        setTempZipDupe(inputValue)
+        setTempZipDupe(inputValue);
         setTimeout(() => {
           setHasDuplicate(false);
-          setTempZipDupe('')
+          setTempZipDupe("");
         }, 15000);
+
+        // Update the highlightedZipCode state
+        setHighlightedZipCode(inputValue);
+
+        // Clear the highlightedZipCode state after 5 seconds
+        setTimeout(() => {
+          setHighlightedZipCode("");
+        }, 5000);
       } else {
         //zip found and added
         setZipNotFound(false);
-        setHasDuplicate(false)
-        setZipAdded(true);      
-        setTempZip(inputValue)
+        setHasDuplicate(false);
+        setZipAdded(true);
+        setTempZip(inputValue);
         setTimeout(() => {
           setZipAdded(false);
-          setTempZip('')
+          setTempZip("");
         }, 15000);
       }
 
@@ -262,17 +325,16 @@ const RucaPage = () => {
     // Update the state with the concatenated results
     setResults(updatedResults);
     setInputValue("");
-
     // Store the updated results in localStorage as a JSON string
     localStorage.setItem("resultsData", JSON.stringify(updatedResults));
   };
 
   const getRuca = (input) => {
     // Find matching ZIP_CODE in the data array
-    const matchingData = data.filter((item) => item.ZIP_CODE === input);
+    const matchingData = allRucaData.filter((item) => item.ZIP_CODE === input);
 
-    const findClosestZip = (data, input) => {
-      return data.reduce((closest, item) => {
+    const findClosestZip = (allRucaData, input) => {
+      return allRucaData.reduce((closest, item) => {
         const inputNum = parseInt(input, 10);
         const zipNum = parseInt(item.ZIP_CODE, 10);
         const currentDifference = Math.abs(inputNum - zipNum);
@@ -281,18 +343,17 @@ const RucaPage = () => {
         );
 
         return currentDifference < closestDifference ? item : closest;
-      }, data[0]);
+      }, allRucaData[0]);
     };
 
     if (matchingData.length <= 0) {
-      let _closestMatch = findClosestZip(data, input);
+      let _closestMatch = findClosestZip(allRucaData, input);
       setClosestMatch(_closestMatch.ZIP_CODE);
-
       setZipNotFound(true);
-      setTempUnfoundZip(inputValue)
+      setTempUnfoundZip(inputValue);
       setTimeout(() => {
         setZipNotFound(false);
-        setTempUnfoundZip('')
+        setTempUnfoundZip("");
       }, 15000);
     }
     return matchingData;
@@ -301,19 +362,19 @@ const RucaPage = () => {
   const viewAllData = () => {
     _showAllFlag.current = !_showAllFlag.current;
     if (_showAllFlag.current) {
-      setResults(data);
-      setTempSavedData(results);
       setShowAllFlag(true);
     } else {
-      setResults(tempSavedData);
       setShowAllFlag(false);
     }
   };
 
-  // Extract ZIP_CODE values from allRucaData array
-  const zipCodeOptions = allRucaData.map((item) => item.ZIP_CODE);
+  // Create options with labels that include ZIP_CODE and STATE, and value as ZIP_CODE
+  const zipCodeOptions = allRucaData.map((item) => ({
+    label: `${item.ZIP_CODE}`, // Display both ZIP_CODE and STATE in the label
+    value: item.ZIP_CODE, // Use ZIP_CODE as the value
+  }));
 
-  const MIN_CHARACTERS = 1;
+  const MIN_CHARACTERS = 2;
 
   // Define a custom filter function with a 2-minimum-character limit
   const filterOptions = (options, { inputValue }) => {
@@ -324,10 +385,12 @@ const RucaPage = () => {
 
     const lowerInputValue = inputValue.toLowerCase();
     return options.filter((option) =>
-      option.toLowerCase().startsWith(lowerInputValue)
+      option.value.toLowerCase().startsWith(lowerInputValue)
     );
   };
 
+  // Determine the data source based on the value of showAllFlag
+  const dataToRender = showAllFlag ? allRucaData : results;
   return (
     <Box
       sx={{
@@ -335,65 +398,56 @@ const RucaPage = () => {
         flexDirection: "column",
         justifyContent: "flex-start",
         alignItems: "center",
-        minHeight: "100vh",
+        minHeight: "80vh",
         backgroundColor: "background.default",
         paddingTop: "3rem",
         margin: "50px",
       }}
     >
       <Grid container spacing={3}>
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={2}>
           <form onSubmit={handleSubmit}>
-            {showAllFlag ? (
-              <Tooltip title={"Switch back to Your Zips to search."}>
+            <Autocomplete
+              options={zipCodeOptions} // Use extracted ZIP_CODE values as options
+              value={inputValue}
+              onChange={handleAutocompleteChange} // Use the handleAutocompleteChange function
+              disableClearable
+              freeSolo // Allow any input value, not just available options
+              filterOptions={filterOptions} // Custom filter function with a minimum character limit
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+                  {...props}
+                >
+                  {option.label}
+                </Box>
+              )}
+              renderInput={(params) => (
                 <TextField
+                  {...params}
                   label="Zip Code Search"
                   variant="outlined"
-                  value={inputValue}
                   onChange={handleChange}
-                  disabled={showAllFlag}
-                  sx={{ minWidth: 300 }}
-                  inputProps={{ maxLength: 5 }} // Limit input length to 5 characters
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={handleSubmit}>
+                          <ArrowRightAltIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  inputProps={{
+                    ...params.inputProps,
+                    maxLength: 5, // Limit input length to 5 characters
+                  }}
                   helperText={validationMessage} // Display validation message
                   error={!!validationMessage} // Show error style if validation message exists
                 />
-              </Tooltip>
-            ) : (
-              <Autocomplete
-                options={zipCodeOptions} // Use extracted ZIP_CODE values as options
-                value={inputValue}
-                onChange={handleAutocompleteChange} // Use the handleAutocompleteChange function
-                disableClearable
-                freeSolo // Allow any input value, not just available options
-                filterOptions={filterOptions} // Custom filter function with a minimum character limit
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Zip Code Search"
-                    variant="outlined"
-                    disabled={showAllFlag}
-                    sx={{ minWidth: 300 }}
-                    inputProps={{
-                      ...params.inputProps,
-                      maxLength: 5, // Limit input length to 5 characters
-                    }}
-                    helperText={validationMessage} // Display validation message
-                    error={!!validationMessage} // Show error style if validation message exists
-                  />
-                )}
-              />
-            )}
-
-            <Button
-              type="submit" // Add type="submit" to the Button
-              variant="contained"
-              color="primary"
-              disabled={showAllFlag}
-              startIcon={<SearchIcon />}
-              sx={{ marginTop: "10px", marginLeft: "10px" }}
-            >
-              Submit
-            </Button>
+              )}
+            />
             <Collapse in={hasDuplicate}>
               <Alert
                 onClose={() => setHasDuplicate(false)}
@@ -409,8 +463,8 @@ const RucaPage = () => {
                 severity="error"
                 sx={{ width: "100%", marginTop: "10px" }}
               >
-                Zip {tempUnfoundZip} does not exist in the data. Did you mean {closestMatch}
-                ?
+                Zip {tempUnfoundZip} does not exist in the data. Did you mean{" "}
+                {closestMatch}?
               </Alert>
             </Collapse>
             <Collapse in={zipAdded}>
@@ -424,16 +478,16 @@ const RucaPage = () => {
             </Collapse>
           </form>
         </Grid>
-        <Grid item xs={12} sm={8} md={9}>
+        <Grid item xs={12} md={10}>
           <MaterialReactTable
             title="Ruca Search Table"
             columns={columns}
-            data={results}
+            data={dataToRender}
             enableColumnResizing
+            enablePagination={true}
             columnResizeMode="onEnd" //instead of the default "onChange" mode
             enableClickToCopy={true}
             autoWidth={true}
-            // enableSorting={true}
             enableRowOrdering={!showAllFlag}
             muiTableBodyRowDragHandleProps={({ table }) =>
               showAllFlag
@@ -457,6 +511,15 @@ const RucaPage = () => {
                     },
                   }
             }
+            muiTableBodyRowProps={getRowProps} //
+            muiTablePaginationProps={{
+              rowsPerPageOptions: [5, 10, 25, 100, 500],
+              showFirstButton: false,
+              showLastButton: false,
+            }}
+            muiTableContainerProps={{
+              sx: { maxHeight: "60vh" },
+            }}
             muiTablePaperProps={{
               elevation: 2, //change the mui box shadow
               //customize paper styles
@@ -493,8 +556,6 @@ const RucaPage = () => {
                 width="100%"
                 sx={{
                   display: "flex",
-                  gap: "1rem",
-                  p: "0.5rem",
                   flexWrap: "wrap",
                 }}
               >
@@ -534,7 +595,7 @@ const RucaPage = () => {
                     <img
                       src={csvIcon}
                       alt="Export to CSV"
-                      style={{ width: "40px", height: "40px" }}
+                      style={{ width: "32px", height: "32px" }}
                     />
                   </Button>
                 </Tooltip>
@@ -543,7 +604,7 @@ const RucaPage = () => {
                     <img
                       src={xlsxIcon}
                       alt="Export to XLSX"
-                      style={{ width: "40px", height: "40px" }}
+                      style={{ width: "32px", height: "32px" }}
                     />
                   </Button>
                 </Tooltip>

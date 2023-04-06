@@ -7,7 +7,7 @@ import Box from "@mui/material/Box";
 
 const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
-function App() {
+function App({mode}) {
   const colorMode = useContext(ColorModeContext);
 
   return (
@@ -18,7 +18,7 @@ function App() {
       }}
     >
       <DrawerAppBar toggleColorMode={colorMode.toggleColorMode} />
-      <RucaPage />
+      <RucaPage mode={mode}/>
     </Box>
   );
 }
@@ -55,7 +55,7 @@ export default function ToggleColorMode() {
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App />
+        <App mode={mode}/>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );
