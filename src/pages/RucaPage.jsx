@@ -22,6 +22,7 @@ import xlsxIcon from "../assets/xlsx.png";
 import Autocomplete from "@mui/material/Autocomplete";
 import InputAdornment from "@mui/material/InputAdornment";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const RucaPage = ({ mode }) => {
   const [inputValue, setInputValue] = useState("");
@@ -391,6 +392,10 @@ const RucaPage = ({ mode }) => {
 
   // Determine the data source based on the value of showAllFlag
   const dataToRender = showAllFlag ? allRucaData : results;
+
+  // Use a media query to check if the viewport width is greater than or equal to 768 pixels
+  const isTabletOrLarger = useMediaQuery("(min-width:768px)");
+
   return (
     <Box
       sx={{
@@ -571,7 +576,13 @@ const RucaPage = ({ mode }) => {
                         <ShowChartIcon />
                       </IconButton>
                     </Tooltip>
-                    <Typography variant={"h4"} sx={{ margin: "auto" }}>
+                    <Typography
+                      variant={"h4"}
+                      sx={{
+                        margin: "auto",
+                        fontSize: isTabletOrLarger ? "2rem" : "1rem", // Smaller font size for smaller viewports
+                      }}
+                    >
                       All Zips
                     </Typography>
                   </>
@@ -586,7 +597,13 @@ const RucaPage = ({ mode }) => {
                         <QueryStatsIcon />
                       </IconButton>
                     </Tooltip>
-                    <Typography variant={"h4"} sx={{ margin: "auto" }}>
+                    <Typography
+                      variant={"h4"}
+                      sx={{
+                        margin: "auto",
+                        fontSize: isTabletOrLarger ? "2rem" : "1rem", // Smaller font size for smaller viewports
+                      }}
+                    >
                       Your Zips
                     </Typography>
                   </>
