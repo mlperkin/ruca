@@ -12,7 +12,7 @@ import {
 import { Box } from "@mui/system";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
-import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
+// import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 import MaterialReactTable from "material-react-table";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
@@ -23,6 +23,8 @@ import Autocomplete from "@mui/material/Autocomplete";
 import InputAdornment from "@mui/material/InputAdornment";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Cards from "../components/Cards";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const RucaPage = ({ mode }) => {
   const [inputValue, setInputValue] = useState("");
@@ -66,7 +68,7 @@ const RucaPage = ({ mode }) => {
             backgroundColor: "rgba(0, 0, 0, 0.08)",
           }}
         >
-          <PlaylistRemoveIcon />
+          <DeleteIcon />
         </div>
       </Tooltip>
     );
@@ -484,151 +486,175 @@ const RucaPage = ({ mode }) => {
           </form>
         </Grid>
         <Grid item xs={12} md={10}>
-          <MaterialReactTable
-            title="Ruca Search Table"
-            columns={columns}
-            data={dataToRender}
-            enableStickyHeader
-            enableColumnResizing
-            enablePagination={true}
-            columnResizeMode="onEnd" //instead of the default "onChange" mode
-            enableClickToCopy={true}
-            autoWidth={true}
-            enableRowOrdering={!showAllFlag}
-            muiTableBodyRowDragHandleProps={({ table }) =>
-              showAllFlag
-                ? {}
-                : {
-                    onDragEnd: () => {
-                      const { draggingRow, hoveredRow } = table.getState();
-                      if (hoveredRow && draggingRow) {
-                        results.splice(
-                          hoveredRow.index,
-                          0,
-                          results.splice(draggingRow.index, 1)[0]
-                        );
-                        setResults([...results]);
-                        // Store the updated results in localStorage as a JSON string
-                        localStorage.setItem(
-                          "resultsData",
-                          JSON.stringify([...results])
-                        );
-                      }
-                    },
-                  }
-            }
-            muiTableBodyRowProps={getRowProps} //
-            muiTablePaginationProps={{
-              rowsPerPageOptions: [5, 10, 25, 100, 500],
-              showFirstButton: false,
-              showLastButton: false,
-            }}
-            muiTableContainerProps={{
-              sx: { maxHeight: "60vh" },
-            }}
-            muiTablePaperProps={{
-              elevation: 2, //change the mui box shadow
-              //customize paper styles
-              sx: {
-                borderRadius: "0",
-                border: "1px solid #e0e0e0",
-              },
-            }}
-            muiTableBodyProps={{
-              sx: {
-                "& .subrow": {
-                  backgroundColor: "pink",
+          {isTabletOrLarger ? (
+            <MaterialReactTable
+              title="Ruca Search Table"
+              columns={columns}
+              data={dataToRender}
+              enableStickyHeader
+              enableColumnResizing
+              enablePagination={true}
+              columnResizeMode="onEnd" //instead of the default "onChange" mode
+              enableClickToCopy={true}
+              autoWidth={true}
+              enableRowOrdering={!showAllFlag}
+              muiTableBodyRowDragHandleProps={({ table }) =>
+                showAllFlag
+                  ? {}
+                  : {
+                      onDragEnd: () => {
+                        const { draggingRow, hoveredRow } = table.getState();
+                        if (hoveredRow && draggingRow) {
+                          results.splice(
+                            hoveredRow.index,
+                            0,
+                            results.splice(draggingRow.index, 1)[0]
+                          );
+                          setResults([...results]);
+                          // Store the updated results in localStorage as a JSON string
+                          localStorage.setItem(
+                            "resultsData",
+                            JSON.stringify([...results])
+                          );
+                        }
+                      },
+                    }
+              }
+              muiTableBodyRowProps={getRowProps} //
+              muiTablePaginationProps={{
+                rowsPerPageOptions: [5, 10, 25, 100, 500],
+                showFirstButton: false,
+                showLastButton: false,
+              }}
+              muiTableContainerProps={{
+                sx: { maxHeight: "60vh" },
+              }}
+              muiTablePaperProps={{
+                elevation: 2, //change the mui box shadow
+                //customize paper styles
+                sx: {
+                  borderRadius: "0",
+                  border: "1px solid #e0e0e0",
                 },
-              },
-            }}
-            muiTableHeadProps={{
-              sx: (theme) => ({
-                "& tr": {
-                  backgroundColor: "#4a4a4a",
-                  color: "#ffffff",
+              }}
+              muiTableBodyProps={{
+                sx: {
+                  "& .subrow": {
+                    backgroundColor: "pink",
+                  },
                 },
-              }),
-            }}
-            muiTableHeadCellProps={{
-              sx: (theme) => ({
-                div: {
-                  backgroundColor: "#4a4a4a",
-                  color: "#ffffff",
-                },
-              }),
-            }}
-            renderTopToolbarCustomActions={({ table }) => (
-              <Box
-                width="100%"
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                }}
-              >
-                {showAllFlag ? (
-                  <>
-                    <Tooltip title="View Saved Data" placement="top">
-                      <IconButton
-                        color="primary"
-                        onClick={viewAllData}
-                        sx={{ width: "60px", height: "60px" }}
+              }}
+              muiTableHeadProps={{
+                sx: (theme) => ({
+                  "& tr": {
+                    backgroundColor: "#4a4a4a",
+                    color: "#ffffff",
+                  },
+                }),
+              }}
+              muiTableHeadCellProps={{
+                sx: (theme) => ({
+                  div: {
+                    backgroundColor: "#4a4a4a",
+                    color: "#ffffff",
+                  },
+                }),
+              }}
+              renderTopToolbarCustomActions={({ table }) => (
+                <Box
+                  width="100%"
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {showAllFlag ? (
+                    <>
+                      <Tooltip title="View Saved Data" placement="top">
+                        <IconButton
+                          color="primary"
+                          onClick={viewAllData}
+                          sx={{ width: "60px", height: "60px" }}
+                        >
+                          <ShowChartIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Typography
+                        variant={"h4"}
+                        sx={{
+                          margin: "auto",
+                          fontSize: isTabletOrLarger ? "2rem" : "1rem", // Smaller font size for smaller viewports
+                        }}
                       >
-                        <ShowChartIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Typography
-                      variant={"h4"}
-                      sx={{
-                        margin: "auto",
-                        fontSize: isTabletOrLarger ? "2rem" : "1rem", // Smaller font size for smaller viewports
-                      }}
-                    >
-                      All Zips
-                    </Typography>
-                  </>
-                ) : (
-                  <>
-                    <Tooltip title="View All Data" placement="top">
-                      <IconButton
-                        color="primary"
-                        onClick={viewAllData}
-                        sx={{ width: "60px", height: "60px" }}
+                        All Zips
+                      </Typography>
+                    </>
+                  ) : (
+                    <>
+                      <Tooltip title="View All Data" placement="top">
+                        <IconButton
+                          color="primary"
+                          onClick={viewAllData}
+                          sx={{ width: "60px", height: "60px" }}
+                        >
+                          <QueryStatsIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Typography
+                        variant={"h4"}
+                        sx={{
+                          margin: "auto",
+                          fontSize: isTabletOrLarger ? "2rem" : "1rem", // Smaller font size for smaller viewports
+                        }}
                       >
-                        <QueryStatsIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Typography
-                      variant={"h4"}
-                      sx={{
-                        margin: "auto",
-                        fontSize: isTabletOrLarger ? "2rem" : "1rem", // Smaller font size for smaller viewports
-                      }}
-                    >
-                      Your Zips
-                    </Typography>
-                  </>
-                )}
-                <Tooltip title={"Export to CSV"} placement="top">
-                  <Button onClick={exportToCSV}>
-                    <img
-                      src={csvIcon}
-                      alt="Export to CSV"
-                      style={{ width: "32px", height: "32px" }}
-                    />
-                  </Button>
-                </Tooltip>
-                <Tooltip title={"Export to XLSX"} placement="top">
-                  <Button onClick={exportToXLSX}>
-                    <img
-                      src={xlsxIcon}
-                      alt="Export to XLSX"
-                      style={{ width: "32px", height: "32px" }}
-                    />
-                  </Button>
-                </Tooltip>
-              </Box>
-            )}
-          />
+                        Your Zips
+                      </Typography>
+                    </>
+                  )}
+                  <Tooltip title={"Export to CSV"} placement="top">
+                    <Button onClick={exportToCSV}>
+                      <img
+                        src={csvIcon}
+                        alt="Export to CSV"
+                        style={{ width: "32px", height: "32px" }}
+                      />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title={"Export to XLSX"} placement="top">
+                    <Button onClick={exportToXLSX}>
+                      <img
+                        src={xlsxIcon}
+                        alt="Export to XLSX"
+                        style={{ width: "32px", height: "32px" }}
+                      />
+                    </Button>
+                  </Tooltip>
+                </Box>
+              )}
+            />
+          ) : (
+            <>
+              <Tooltip title={"Export to CSV"} placement="top">
+                <Button onClick={exportToCSV}>
+                  <img
+                    src={csvIcon}
+                    alt="Export to CSV"
+                    style={{ width: "32px", height: "32px" }}
+                  />
+                </Button>
+              </Tooltip>
+              <Tooltip title={"Export to XLSX"} placement="top">
+                <Button onClick={exportToXLSX}>
+                  <img
+                    src={xlsxIcon}
+                    alt="Export to XLSX"
+                    style={{ width: "32px", height: "32px" }}
+                  />
+                </Button>
+              </Tooltip>
+              <Cards data={dataToRender} removeRow={removeRow} />
+            </>
+          )}
         </Grid>
       </Grid>
     </Box>
