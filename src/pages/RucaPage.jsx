@@ -486,7 +486,7 @@ const RucaPage = ({ mode }) => {
           </form>
         </Grid>
         <Grid item xs={12} md={10}>
-          {isTabletOrLarger ? (
+          {(isTabletOrLarger || showAllFlag) && (
             <MaterialReactTable
               title="Ruca Search Table"
               columns={columns}
@@ -632,7 +632,8 @@ const RucaPage = ({ mode }) => {
                 </Box>
               )}
             />
-          ) : (
+          ) }
+          {!isTabletOrLarger && !showAllFlag && (
             <>
               <Tooltip title={"Export to CSV"} placement="top">
                 <Button onClick={exportToCSV}>
@@ -654,7 +655,7 @@ const RucaPage = ({ mode }) => {
               </Tooltip>
               <Cards data={dataToRender} removeRow={removeRow} />
             </>
-          )}
+          ) } 
         </Grid>
       </Grid>
     </Box>
