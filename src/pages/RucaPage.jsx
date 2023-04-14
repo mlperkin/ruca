@@ -25,23 +25,42 @@ import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Cards from "../components/Cards";
 import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
 
 const RucaPage = ({ mode }) => {
   const [inputValue, setInputValue] = useState("");
   const [results, setResults] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
-  const [hasDuplicate, setHasDuplicate] = useState(false);
-  const [zipNotFound, setZipNotFound] = useState(false);
-  const [zipAdded, setZipAdded] = useState(false);
   const [showAllFlag, setShowAllFlag] = useState(false);
-  const [closestMatch, setClosestMatch] = useState();
   const [allRucaData, setAllRucaData] = useState([]);
-  const [tempZip, setTempZip] = useState("");
-  const [tempZipDupe, setTempZipDupe] = useState("");
-  const [tempUnfoundZip, setTempUnfoundZip] = useState("");
-  const [highlightedZipCode, setHighlightedZipCode] = useState("");
+  const [highlightedZipCodes, setHighlightedZipCodes] = useState([]);
+
+  //state variables for multiple alerts
+  const [hasDuplicates, setHasDuplicates] = useState([]);
+  const [zipNotFounds, setZipNotFounds] = useState([]);
+  const [zipAddeds, setZipAddeds] = useState([]);
 
   let _showAllFlag = useRef(false);
+
+  function processZipCodes(input) {
+    let zipCodes = input.split(/[\s,]+/);
+    let validZipCodes = [];
+    let invalidZipCodes = [];
+
+    zipCodes.forEach((zip) => {
+      // Remove the 4-digit suffix if present and trim any leading/trailing whitespaces
+      const cleanedZip = zip.split("-")[0].trim();
+
+      // Check if the cleaned zip code has exactly 5 digits
+      if (/^\d{5}$/.test(cleanedZip)) {
+        validZipCodes.push(cleanedZip);
+      } else {
+        invalidZipCodes.push(cleanedZip);
+      }
+    });
+
+    return { validZipCodes, invalidZipCodes };
+  }
 
   const CombinedResultsCell = ({ cell, row }) => {
     return [
@@ -104,7 +123,7 @@ const RucaPage = ({ mode }) => {
   const getRowProps = ({ row }) => {
     // Check if the row's ZIP_CODE matches the highlightedZipCode
     if (!row.original) return;
-    const isHighlighted = row.original.ZIP_CODE === highlightedZipCode;
+    const isHighlighted = highlightedZipCodes.includes(row.original.ZIP_CODE);
 
     // Define the highlight styles based on the mode
     const darkModeHighlightStyles = {
@@ -269,7 +288,9 @@ const RucaPage = ({ mode }) => {
       setValidationMessage("");
     } else {
       // If invalid, set the validation message
-      setValidationMessage("Please enter a valid 5-digit ZIP code");
+      // setValidationMessage(
+      //   "Please enter a valid 5-digit ZIP code or multiple ZIP codes separated by comma or white space."
+      // );
     }
   };
 
@@ -278,62 +299,78 @@ const RucaPage = ({ mode }) => {
     handleChange(newValue.value || ""); // Use an empty string if newValue is undefined
   };
 
+  function clearAlerts() {
+    setHasDuplicates([]);
+    setZipNotFounds([]);
+    setZipAddeds([]);
+    setHighlightedZipCodes([]);
+  }
+
   const handleSubmit = (event) => {
-    // Prevent the default form submission behavior
+    clearAlerts();
     event.preventDefault();
     if (!inputValue) return;
 
-    // if (showAllFlag) return; //do not submit if on all results
-    const _data = getRuca(inputValue);
+    const { validZipCodes, invalidZipCodes } = processZipCodes(inputValue);
+    let updatedResults = [...results];
+    let newHasDuplicates = [];
+    let newZipNotFounds = [];
+    let newZipAddeds = [];
 
-    // Filter out any data that already exists in the results based on the ZIP_CODE
-    const newUniqueData = _data.filter((newItem) => {
-      const duplicate = results.some(
-        (existingItem) => existingItem.ZIP_CODE === newItem.ZIP_CODE
-      );
-
-      if (duplicate) {
-        setHasDuplicate(true);
-        setTempZipDupe(inputValue);
-        setTimeout(() => {
-          setHasDuplicate(false);
-          setTempZipDupe("");
-        }, 15000);
-
-        // Update the highlightedZipCode state
-        setHighlightedZipCode(inputValue);
-
-        // Clear the highlightedZipCode state after 5 seconds
-        setTimeout(() => {
-          setHighlightedZipCode("");
-        }, 5000);
-      } else {
-        //zip found and added
-        setZipNotFound(false);
-        setHasDuplicate(false);
-        setZipAdded(true);
-        setTempZip(inputValue);
-        setTimeout(() => {
-          setZipAdded(false);
-          setTempZip("");
-        }, 15000);
-      }
-
-      return !duplicate;
+    // Display alerts for invalid zip codes
+    invalidZipCodes.forEach((zip) => {
+      newZipNotFounds.push({ zip, closestMatch: null });
     });
 
-    // Use spread operator to concatenate existing results with new unique data
-    const updatedResults = [...results, ...newUniqueData];
+    // Create a temporary array for highlighted zip codes
+    let tempHighlightedZipCodes = [...highlightedZipCodes];
 
-    // Update the state with the concatenated results
+    validZipCodes.forEach((zip) => {
+      const { matchingData, zipNotFound, closestMatch } = getRuca(zip);
+
+      if (zipNotFound) {
+        newZipNotFounds.push({ zip, closestMatch });
+      }
+
+      const newUniqueData = matchingData.filter((newItem) => {
+        const duplicate = updatedResults.some(
+          (existingItem) => existingItem.ZIP_CODE === newItem.ZIP_CODE
+        );
+
+        if (duplicate) {
+          newHasDuplicates.push({ zip });
+          // Update the temporary array with the new highlighted zip code
+          tempHighlightedZipCodes.push(zip);
+        } else {
+          newZipAddeds.push({ zip });
+        }
+
+        return !duplicate;
+      });
+
+      updatedResults = [...updatedResults, ...newUniqueData];
+    });
+
     setResults(updatedResults);
     setInputValue("");
-    // Store the updated results in localStorage as a JSON string
     localStorage.setItem("resultsData", JSON.stringify(updatedResults));
+
+    setHasDuplicates(newHasDuplicates);
+    setZipAddeds(newZipAddeds);
+    // Merge new invalid zip codes alerts with existing ones
+    setZipNotFounds((prevZipNotFounds) => [
+      ...prevZipNotFounds,
+      ...newZipNotFounds,
+    ]);
+    // Update the state only once with the temporary array
+    setHighlightedZipCodes(tempHighlightedZipCodes);
+
+    setTimeout(() => {
+      clearAlerts(); // Clear highlighted zip codes after the timeout
+    }, 15000);
   };
 
   const getRuca = (input) => {
-    // Find matching ZIP_CODE in the data array
     const matchingData = allRucaData.filter((item) => item.ZIP_CODE === input);
 
     const findClosestZip = (allRucaData, input) => {
@@ -349,17 +386,19 @@ const RucaPage = ({ mode }) => {
       }, allRucaData[0]);
     };
 
+    let zipNotFound = false;
+    let closestMatch = null;
+
     if (matchingData.length <= 0) {
-      let _closestMatch = findClosestZip(allRucaData, input);
-      setClosestMatch(_closestMatch.ZIP_CODE);
-      setZipNotFound(true);
-      setTempUnfoundZip(inputValue);
-      setTimeout(() => {
-        setZipNotFound(false);
-        setTempUnfoundZip("");
-      }, 15000);
+      closestMatch = findClosestZip(allRucaData, input).ZIP_CODE;
+      zipNotFound = true;
     }
-    return matchingData;
+
+    return {
+      matchingData,
+      zipNotFound,
+      closestMatch,
+    };
   };
 
   const viewAllData = () => {
@@ -390,6 +429,13 @@ const RucaPage = ({ mode }) => {
     return options.filter((option) =>
       option.value.toLowerCase().startsWith(lowerInputValue)
     );
+  };
+
+  const handleClearAll = () => {
+    // Clear all logic goes here
+    setResults([]);
+    clearAlerts();
+    localStorage.setItem("resultsData", []);
   };
 
   // Determine the data source based on the value of showAllFlag
@@ -448,41 +494,59 @@ const RucaPage = ({ mode }) => {
                   }}
                   inputProps={{
                     ...params.inputProps,
-                    maxLength: 5, // Limit input length to 5 characters
+                    // maxLength: 5, // Limit input length to 5 characters
                   }}
                   helperText={validationMessage} // Display validation message
                   error={!!validationMessage} // Show error style if validation message exists
                 />
               )}
             />
-            <Collapse in={hasDuplicate}>
-              <Alert
-                onClose={() => setHasDuplicate(false)}
-                severity="error"
-                sx={{ width: "100%", marginTop: "10px" }}
-              >
-                Zip {tempZipDupe} already exists in Your Zips.
-              </Alert>
-            </Collapse>
-            <Collapse in={zipNotFound}>
-              <Alert
-                onClose={() => setZipNotFound(false)}
-                severity="error"
-                sx={{ width: "100%", marginTop: "10px" }}
-              >
-                Zip {tempUnfoundZip} does not exist in the data. Did you mean{" "}
-                {closestMatch}?
-              </Alert>
-            </Collapse>
-            <Collapse in={zipAdded}>
-              <Alert
-                onClose={() => setZipAdded(false)}
-                severity="success"
-                sx={{ width: "100%", marginTop: "10px" }}
-              >
-                Zip {tempZip} added.
-              </Alert>
-            </Collapse>
+            {hasDuplicates.map((duplicate, index) => (
+              <Collapse in={true} key={`duplicate-${index}`}>
+                <Alert
+                  onClose={() => {
+                    const updatedHasDuplicates = [...hasDuplicates];
+                    updatedHasDuplicates.splice(index, 1);
+                    setHasDuplicates(updatedHasDuplicates);
+                  }}
+                  severity="error"
+                  sx={{ width: "100%", marginTop: "10px" }}
+                >
+                  Zip {duplicate.zip} already exists in Your Zips.
+                </Alert>
+              </Collapse>
+            ))}
+            {zipNotFounds.map((notFound, index) => (
+              <Collapse in={true} key={`not-found-${index}`}>
+                <Alert
+                  onClose={() => {
+                    const updatedZipNotFounds = [...zipNotFounds];
+                    updatedZipNotFounds.splice(index, 1);
+                    setZipNotFounds(updatedZipNotFounds);
+                  }}
+                  severity="error"
+                  sx={{ width: "100%", marginTop: "10px" }}
+                >
+                  Zip {notFound.zip} does not exist in the data. Did you mean{" "}
+                  {notFound.closestMatch}?
+                </Alert>
+              </Collapse>
+            ))}
+            {zipAddeds.map((added, index) => (
+              <Collapse in={true} key={`added-${index}`}>
+                <Alert
+                  onClose={() => {
+                    const updatedZipAddeds = [...zipAddeds];
+                    updatedZipAddeds.splice(index, 1);
+                    setZipAddeds(updatedZipAddeds);
+                  }}
+                  severity="success"
+                  sx={{ width: "100%", marginTop: "10px" }}
+                >
+                  Zip {added.zip} added.
+                </Alert>
+              </Collapse>
+            ))}
           </form>
         </Grid>
         <Grid item xs={12} md={10}>
@@ -600,6 +664,14 @@ const RucaPage = ({ mode }) => {
                           <QueryStatsIcon />
                         </IconButton>
                       </Tooltip>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<DeleteSweepIcon />}
+                        onClick={handleClearAll}
+                      >
+                        Clear All
+                      </Button>
                       <Typography
                         variant={"h4"}
                         sx={{
@@ -632,7 +704,7 @@ const RucaPage = ({ mode }) => {
                 </Box>
               )}
             />
-          ) }
+          )}
           {!isTabletOrLarger && !showAllFlag && (
             <>
               <Tooltip title={"Export to CSV"} placement="top">
@@ -653,9 +725,17 @@ const RucaPage = ({ mode }) => {
                   />
                 </Button>
               </Tooltip>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<DeleteSweepIcon />}
+                onClick={handleClearAll}
+              >
+                Clear All
+              </Button>
               <Cards data={dataToRender} removeRow={removeRow} />
             </>
-          ) } 
+          )}
         </Grid>
       </Grid>
     </Box>
