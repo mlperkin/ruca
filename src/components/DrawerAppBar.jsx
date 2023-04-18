@@ -11,19 +11,26 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import HelpIcon from '@mui/icons-material/Help';
 
 const drawerWidth = 240;
 
 function DrawerAppBar(props) {
-  const { window, toggleColorMode } = props;
+  const { window, toggleColorMode, setRunTour } = props;
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const theme = useTheme();
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
   };
+
+  function showRunTour(){
+    console.log('set run tour')
+    localStorage.setItem("runTour", true);
+    setRunTour(true)
+  }
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
@@ -33,11 +40,7 @@ function DrawerAppBar(props) {
       <Divider />
       <List>
         <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
-          {theme.palette.mode === "dark" ? (
-            <LightModeIcon />
-          ) : (
-            <DarkModeIcon />
-          )}
+          {theme.palette.mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
         </IconButton>
       </List>
     </Box>
@@ -67,8 +70,19 @@ function DrawerAppBar(props) {
           >
             RUCA Zip Search
           </Typography>
-          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+          <Box
+            sx={{ display: { xs: "none", sm: "block" } }}
+          >
             <IconButton
+              sx={{ ml: 1 }}
+              onClick={showRunTour}
+              color="inherit"
+            >
+              <HelpIcon />
+            </IconButton>
+
+            <IconButton
+            className={'my-sixth-step'}
               sx={{ ml: 1 }}
               onClick={toggleColorMode}
               color="inherit"

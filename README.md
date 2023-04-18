@@ -14,3 +14,9 @@ If a need to update the zip code data source occurs, then you will first need to
 
     npm run start
 
+    unzip build.zip
+    sudo cp -rf build/* /var/www/html/ruca/
+
+
+
+

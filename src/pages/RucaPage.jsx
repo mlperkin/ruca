@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-pascal-case */
 import React, { useState, useEffect, useRef } from "react";
 import {
   Alert,
@@ -13,7 +14,6 @@ import { Box } from "@mui/system";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 // import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
-import MaterialReactTable from "material-react-table";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import { Workbook } from "exceljs";
@@ -26,8 +26,17 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import Cards from "../components/Cards";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
+import Joyride from "react-joyride";
+import MaterialReactTable, {
+  MRT_ToggleDensePaddingButton,
+  MRT_FullScreenToggleButton,
+  MRT_ToggleFiltersButton,
+  MRT_ToggleGlobalFilterButton,
+} from "material-react-table";
+import PrintIcon from "@mui/icons-material/Print";
+import { useTheme } from "@mui/material/styles";
 
-const RucaPage = ({ mode }) => {
+const RucaPage = ({ mode, runTour, setRunTour }) => {
   const [inputValue, setInputValue] = useState("");
   const [results, setResults] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
@@ -40,7 +49,69 @@ const RucaPage = ({ mode }) => {
   const [zipNotFounds, setZipNotFounds] = useState([]);
   const [zipAddeds, setZipAddeds] = useState([]);
 
+  // Define state variables to control the tour
+  // const [run, setRun] = useState(true);
+  const [stepIndex, setStepIndex] = useState(0);
+
+
   let _showAllFlag = useRef(false);
+
+  // Access the theme object
+  const theme = useTheme();
+
+  const steps = [
+    {
+      target: ".my-first-step",
+      content:
+        "Add your list of zip codes here. You can add multiple either separated by a space or a comma. You can also add more granular zips (ZIP+4) that contain more than 5 digits.",
+        disableBeacon: true,
+          // disableOverlayClose: true,
+          // hideCloseButton: true,
+          // hideFooter: true,
+          placement: 'top',
+          spotlightClicks: true,
+    },
+    {
+      target: ".my-second-step",
+      content: "Toggle between all the ZIP codes data here and your ZIP list",
+    },
+    {
+      target: ".my-third-step",
+      content: "Clear out your entire current list of ZIPS here",
+    },
+    {
+      target: ".my-fourth-step",
+      content: "Export the table to either CSV or XLSX",
+    },
+    {
+      target: ".my-fifth-step",
+      content: "More advanced features to use the current table",
+    },
+    {
+      target: ".my-sixth-step",
+      content: "Toggle dark/light mode here",
+    },
+    // Add more steps as needed
+  ];
+
+  // Create event handlers for the Joyride callback
+  const handleJoyrideCallback = (data) => {
+    const { status, type, index, action } = data;
+    if (status === "finished" || status === "skipped") {
+      // If the tour is finished or skipped, stop running the tour
+      // setRun(false);
+      setRunTour(false)
+      setStepIndex(0)
+      localStorage.setItem("runTour", false);
+    } else if (type === "step:after" && action !== "prev") {
+      // Update the step index when the user progresses to the next step
+      // Exclude action "prev" to avoid incrementing index when clicking "Back"
+      setStepIndex(index + 1);
+    } else if (type === "step:after" && action === "prev") {
+      // Update the step index when the user navigates to the previous step
+      setStepIndex(index - 1);
+    }
+  };
 
   function processZipCodes(input) {
     let zipCodes = input.split(/[\s,]+/);
@@ -147,6 +218,15 @@ const RucaPage = ({ mode }) => {
   };
 
   useEffect(() => {
+    const _runTour = localStorage.getItem("runTour");
+
+    if (_runTour !== 'false') {
+      setRunTour(true)
+      setStepIndex(0);
+    } else {
+      // setRunTour(false)
+    }
+
     const fetchData = async () => {
       // Get the latest version identifier from your server.
       // You need to host the identifier somewhere, e.g., as a separate file or as part of an API response.
@@ -193,6 +273,7 @@ const RucaPage = ({ mode }) => {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const exportToCSV = () => {
@@ -458,9 +539,56 @@ const RucaPage = ({ mode }) => {
       }}
     >
       <Grid container spacing={3}>
+        {runTour && isTabletOrLarger && (
+          <Joyride
+            steps={steps}
+            continuous={true}
+            showSkipButton={true}
+            showProgress={true}
+            disableBeacon={true}
+            disableOverlayClose={true}
+            hideCloseButton={false} // Show the close button in the top-right corner
+            hideFooter={false} // Show the footer with the "Back" button
+            placement={"top"}
+            spotlightClicks={true}
+            run={runTour} // Control whether the tour is running
+            stepIndex={stepIndex} // Control the current step
+            callback={handleJoyrideCallback} // Listen to Joyride events
+            styles={{
+              options: {
+                // modal arrow and background color
+                arrowColor: theme.palette.primary.contrastText,
+                backgroundColor: theme.palette.primary.main,
+                // page overlay color
+                overlayColor: "rgba(0, 0, 0, 0.4)",
+                //button color
+                primaryColor: theme.palette.primary.main,
+                //text color
+                textColor: theme.palette.primary.contrastText,
+                //width of modal
+                width: 500,
+                //zindex of modal
+                zIndex: 1000,
+              },
+              buttonNext: {
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                // Additional custom styles...
+              },
+              buttonBack: {
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                // Additional custom styles...
+              },
+              // Define additional styles for other parts of the modal...
+            }}
+          />
+        )}
+
         <Grid item xs={12} md={2}>
           <form onSubmit={handleSubmit}>
             <Autocomplete
+              className="my-first-step"
               options={zipCodeOptions} // Use extracted ZIP_CODE values as options
               value={inputValue}
               onChange={handleAutocompleteChange} // Use the handleAutocompleteChange function
@@ -562,6 +690,27 @@ const RucaPage = ({ mode }) => {
               enableClickToCopy={true}
               autoWidth={true}
               enableRowOrdering={!showAllFlag}
+              //customize built-in buttons in the top-right of top toolbar
+              renderToolbarInternalActions={({ table }) => (
+                <Box
+                  className="my-fifth-step"
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  {/* add custom button to print table  */}
+                  <IconButton
+                    onClick={() => {
+                      window.print();
+                    }}
+                  >
+                    <PrintIcon />
+                  </IconButton>
+                  {/* along-side built-in buttons in whatever order you want them */}
+                  <MRT_ToggleGlobalFilterButton table={table} />
+                  <MRT_ToggleDensePaddingButton table={table} />
+                  <MRT_FullScreenToggleButton table={table} />
+                  <MRT_ToggleFiltersButton table={table} />
+                </Box>
+              )}
               muiTableBodyRowDragHandleProps={({ table }) =>
                 showAllFlag
                   ? {}
@@ -657,6 +806,7 @@ const RucaPage = ({ mode }) => {
                     <>
                       <Tooltip title="View All Data" placement="top">
                         <IconButton
+                          className="my-second-step"
                           color="primary"
                           onClick={viewAllData}
                           sx={{ width: "60px", height: "60px" }}
@@ -665,6 +815,7 @@ const RucaPage = ({ mode }) => {
                         </IconButton>
                       </Tooltip>
                       <Button
+                        className="my-third-step"
                         variant="outlined"
                         color="primary"
                         startIcon={<DeleteSweepIcon />}
@@ -683,24 +834,26 @@ const RucaPage = ({ mode }) => {
                       </Typography>
                     </>
                   )}
-                  <Tooltip title={"Export to CSV"} placement="top">
-                    <Button onClick={exportToCSV}>
-                      <img
-                        src={csvIcon}
-                        alt="Export to CSV"
-                        style={{ width: "32px", height: "32px" }}
-                      />
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title={"Export to XLSX"} placement="top">
-                    <Button onClick={exportToXLSX}>
-                      <img
-                        src={xlsxIcon}
-                        alt="Export to XLSX"
-                        style={{ width: "32px", height: "32px" }}
-                      />
-                    </Button>
-                  </Tooltip>
+                  <Box className="my-fourth-step">
+                    <Tooltip title={"Export to CSV"} placement="top">
+                      <Button onClick={exportToCSV}>
+                        <img
+                          src={csvIcon}
+                          alt="Export to CSV"
+                          style={{ width: "32px", height: "32px" }}
+                        />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title={"Export to XLSX"} placement="top">
+                      <Button className="my-fourth-step" onClick={exportToXLSX}>
+                        <img
+                          src={xlsxIcon}
+                          alt="Export to XLSX"
+                          style={{ width: "32px", height: "32px" }}
+                        />
+                      </Button>
+                    </Tooltip>
+                  </Box>
                 </Box>
               )}
             />

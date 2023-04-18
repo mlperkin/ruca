@@ -2,7 +2,7 @@
   "name": "ruca",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://34.23.5.184/ruca/",
+  "homepage": "http://ruca.wakehealth.edu/",
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
@@ -19,6 +19,7 @@
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-joyride": "^2.5.3",
     "react-scripts": "5.0.1",
     "styled-components": "^5.3.9",
     "web-vitals": "^2.1.4",

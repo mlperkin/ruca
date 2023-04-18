@@ -7,7 +7,7 @@ import Box from "@mui/material/Box";
 
 const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
-function App({mode}) {
+function App({mode, runTour, setRunTour}) {
   const colorMode = useContext(ColorModeContext);
 
   return (
@@ -17,8 +17,8 @@ function App({mode}) {
         color: "text.primary",
       }}
     >
-      <DrawerAppBar toggleColorMode={colorMode.toggleColorMode} />
-      <RucaPage mode={mode}/>
+      <DrawerAppBar toggleColorMode={colorMode.toggleColorMode} runTour={runTour} setRunTour={setRunTour} />
+      <RucaPage mode={mode} runTour={runTour} setRunTour={setRunTour}/>
     </Box>
   );
 }
@@ -27,6 +27,8 @@ export default function ToggleColorMode() {
   const storedColorPref = localStorage.getItem("colorPref");
   const initialMode = storedColorPref ? JSON.parse(storedColorPref) : "light";
   const [mode, setMode] = useState(initialMode);
+  const [runTour, setRunTour] = useState(false);
+
 
   useEffect(() => {
     localStorage.setItem("colorPref", JSON.stringify(mode));
@@ -55,7 +57,7 @@ export default function ToggleColorMode() {
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App mode={mode}/>
+        <App mode={mode} runTour={runTour} setRunTour={setRunTour}/>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );
