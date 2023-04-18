@@ -550,7 +550,7 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
             hideCloseButton={false} // Show the close button in the top-right corner
             hideFooter={false} // Show the footer with the "Back" button
             placement={"top"}
-            spotlightClicks={true}
+            spotlightClicks={false}
             run={runTour} // Control whether the tour is running
             stepIndex={stepIndex} // Control the current step
             callback={handleJoyrideCallback} // Listen to Joyride events
