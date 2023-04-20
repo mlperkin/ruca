@@ -74,6 +74,7 @@ function DrawerAppBar(props) {
             sx={{ display: { xs: "none", sm: "block" } }}
           >
             <IconButton
+            className={'my-seventh-step'}
               sx={{ ml: 1 }}
               onClick={showRunTour}
               color="inherit"

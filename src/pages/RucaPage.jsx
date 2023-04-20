@@ -91,6 +91,10 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
       target: ".my-sixth-step",
       content: "Toggle dark/light mode here",
     },
+    {
+      target: ".my-seventh-step",
+      content: "Replay this guided tour here",
+    },
     // Add more steps as needed
   ];
 
@@ -568,7 +572,7 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
                 //width of modal
                 width: 500,
                 //zindex of modal
-                zIndex: 1000,
+                zIndex: 1000000,
               },
               buttonNext: {
                 backgroundColor: theme.palette.primary.main,
