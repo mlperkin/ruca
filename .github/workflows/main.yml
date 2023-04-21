@@ -16,7 +16,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '16' 
+        node-version: '16'
 
     - name: Install dependencies
       run: npm ci
@@ -26,10 +26,12 @@ jobs:
 
     - name: Deploy to VM
       run: |
-      #  scp -r build/ mlperkin@34.23.5.184:/var/www/html/ruca/
-      #  ssh username@vm_ip 'sudo chown -R www-data:www-data /var/www/html/ruca/'
+        echo "$PROD_VM_SSH_PRIVATE_KEY" > private_key.pem
+        chmod 600 private_key.pem
+        scp -i private_key.pem -r build/ mattperkinseen@34.23.5.184:/var/www/html/ruca/
+        rm -f private_key.pem
       env:
-        PRIVATE_KEY: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
+        PROD_VM_SSH_PRIVATE_KEY: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
 
-   # - name: Cleanup build files
-     #  run: rm -rf build/
+    - name: Cleanup build files
+      run: rm -rf build/
