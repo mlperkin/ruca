@@ -34,8 +34,8 @@ jobs:
       run: |
         echo "$PROD_VM_SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
-        ssh -i private_key.pem mattperkinsee@34.23.5.184 'rm -rf /var/www/html/ruca/*'
-        scp -i private_key.pem -r build/* mattperkinsee@34.23.5.184:/var/www/html/ruca/
+        # Use rsync to synchronize the build directory with the destination directory
+        rsync -e "ssh -i private_key.pem" -av --delete build/ mattperkinsee@34.23.5.184:/var/www/html/ruca/
         rm -f private_key.pem
       env:
         PROD_VM_SSH_PRIVATE_KEY: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
