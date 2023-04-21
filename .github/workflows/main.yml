@@ -16,7 +16,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '16'
+        node-version: '16' 
 
     - name: Install dependencies
       run: npm ci
@@ -24,21 +24,13 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: Add VM to known_hosts
-      run: |
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-        ssh-keyscan 34.23.5.184 >> ~/.ssh/known_hosts
-
-    - name: Deploy to VM
-      run: |
-        echo "$PROD_VM_SSH_PRIVATE_KEY" > private_key.pem
-        chmod 600 private_key.pem
-        # Use rsync to synchronize the build directory with the destination directory
-        rsync -e "ssh -i private_key.pem" -av --delete build/ mattperkinsee@34.23.5.184:/var/www/html/ruca/
-        rm -f private_key.pem
-      env:
-        PROD_VM_SSH_PRIVATE_KEY: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
+    - name: Deploy to VM using Rsync Deployments action
+      uses: burnett01/rsync-deployments@4.1
+      with:
+        switches: -avz --delete
+        remote_path: mattperkinsee@34.23.5.184:/var/www/html/ruca/
+        local_path: build/
+        private_key: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
 
     - name: Cleanup build files
       run: rm -rf build/
