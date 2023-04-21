@@ -28,11 +28,11 @@ jobs:
       uses: burnett01/rsync-deployments@4.1
       with:
         switches: -avz --delete
-        remote_path: mattperkinsee@34.23.5.184:/var/www/html/ruca/
+        remote_path: /var/www/html/ruca/
         remote_host: 34.23.5.184
         remote_user: mattperkinsee
-        local_path: build/
-        private_key: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
+        path: build/
+        remote_key: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
 
     - name: Cleanup build files
       run: rm -rf build/
