@@ -26,6 +26,8 @@ jobs:
 
     - name: Add VM to known_hosts
       run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
         ssh-keyscan 34.23.5.184 >> ~/.ssh/known_hosts
 
     - name: Deploy to VM
