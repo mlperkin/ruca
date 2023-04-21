@@ -63,7 +63,7 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
     {
       target: ".my-first-step",
       content:
-        "Add your list of zip codes here. You can add multiple either separated by a space or a comma. You can also add more granular zips (ZIP+4) that contain more than 5 digits.",
+        "Add a singular ZIP or a list of ZIP codes. Either separated by spaces or commas. You can also add more granular (ZIP+4) ZIP codes",
         disableBeacon: true,
           // disableOverlayClose: true,
           // hideCloseButton: true,
@@ -73,27 +73,27 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
     },
     {
       target: ".my-second-step",
-      content: "Toggle between all the ZIP codes data here and your ZIP list",
+      content: "Toggle between all the ZIP codes data available and your ZIP list",
     },
     {
       target: ".my-third-step",
-      content: "Clear out your entire current list of ZIPS here",
+      content: "Clear out your entire current list of ZIPS",
     },
     {
       target: ".my-fourth-step",
-      content: "Export the table to either CSV or XLSX",
+      content: "Export table to CSV or XLSX",
     },
     {
       target: ".my-fifth-step",
-      content: "More advanced features to use the current table",
+      content: "More advanced table features",
     },
     {
       target: ".my-sixth-step",
-      content: "Toggle dark/light mode here",
+      content: "Toggle dark/light mode",
     },
     {
       target: ".my-seventh-step",
-      content: "Replay this guided tour here",
+      content: "Replay this guided tour",
     },
     // Add more steps as needed
   ];
