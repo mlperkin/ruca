@@ -34,7 +34,7 @@ jobs:
       run: |
         echo "$PROD_VM_SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
-        scp -i private_key.pem -r build/ mattperkinseen@34.23.5.184:/var/www/html/ruca/
+        scp -i private_key.pem -r build/ mattperkinsee@34.23.5.184:/var/www/html/ruca/
         rm -f private_key.pem
       env:
         PROD_VM_SSH_PRIVATE_KEY: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
