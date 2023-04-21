@@ -29,7 +29,7 @@ jobs:
       with:
         switches: -avz --delete
         remote_path: /var/www/html/ruca/
-        remote_host: 34.23.5.184
+        remote_host: ruca.wakehealth.edu
         remote_user: mattperkinsee
         path: build/
         remote_key: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
