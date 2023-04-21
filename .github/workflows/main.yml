@@ -24,6 +24,10 @@ jobs:
     - name: Build project
       run: npm run build
 
+    - name: Add VM to known_hosts
+      run: |
+        ssh-keyscan 34.23.5.184 >> ~/.ssh/known_hosts
+
     - name: Deploy to VM
       run: |
         echo "$PROD_VM_SSH_PRIVATE_KEY" > private_key.pem
