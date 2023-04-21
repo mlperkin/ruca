@@ -31,5 +31,5 @@ jobs:
       env:
         PRIVATE_KEY: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
 
-    - name: Cleanup build files
+   # - name: Cleanup build files
      #  run: rm -rf build/
