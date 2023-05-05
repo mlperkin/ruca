@@ -27,7 +27,6 @@ function DrawerAppBar(props) {
   };
 
   function showRunTour(){
-    console.log('set run tour')
     localStorage.setItem("runTour", true);
     setRunTour(true)
   }

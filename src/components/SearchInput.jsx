@@ -12,7 +12,7 @@ function SearchInput() {
 
   const handleSubmit = () => {
     // Submit logic here
-    console.log('Submitted:', inputValue);
+    // console.log('Submitted:', inputValue);
   };
 
   const handleOpenDialog = () => {
