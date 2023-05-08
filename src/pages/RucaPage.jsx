@@ -239,16 +239,16 @@ const RucaPage = ({
     const fetchData = async () => {
       // Get the latest version identifier from your server.
       // You need to host the identifier somewhere, e.g., as a separate file or as part of an API response.
-      const latestVersion = await fetch(
-        import.meta.env.VITE_PUBLIC_URL + "/zipRucaDataVersion.txt"
-      ).then((res) => res.text());
+      const latestVersion = await fetch("/zipRucaDataVersion.txt").then((res) =>
+        res.text()
+      );
 
       const storedVersion = localStorage.getItem("rawDataVersion");
       const storedRawData = localStorage.getItem("rawData");
 
       // If the stored version is different from the latest version, update the data.
       if (latestVersion !== storedVersion || !storedRawData) {
-        fetch(import.meta.env.VITE_PUBLIC_URL + "/zipRucaData.csv")
+        fetch("/zipRucaData.csv")
           .then((response) => response.text())
           .then((text) => {
             Papa.parse(text, {
@@ -531,21 +531,21 @@ const RucaPage = ({
 
   // Determine the data source based on the value of showAllFlag
   let dataToRender = showAllFlag ? allRucaData : results;
-  if (!showAllFlag) {
-    // Modify your data to include the 'combinedResults' property. This is for the click to copy to work
-    dataToRender = dataToRender.map((row) => {
-      return {
-        ...row,
-        combinedResults: [
-          row.ZIP_CODE,
-          row.RUCA1,
-          row.RUCA2,
-          row.STATE,
-          row.ZIP_TYPE,
-        ].join(", "),
-      };
-    });
-  }
+  // if (!showAllFlag) {
+  // Modify your data to include the 'combinedResults' property. This is for the click to copy to work
+  dataToRender = dataToRender.map((row) => {
+    return {
+      ...row,
+      combinedResults: [
+        row.ZIP_CODE,
+        row.RUCA1,
+        row.RUCA2,
+        row.STATE,
+        row.ZIP_TYPE,
+      ].join(", "),
+    };
+  });
+  // }
   // Use a media query to check if the viewport width is greater than or equal to 768 pixels
   const isTabletOrLarger = useMediaQuery("(min-width:768px)");
 
