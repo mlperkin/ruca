@@ -35,8 +35,8 @@ jobs:
         remote_path: /var/www/html/ruca/
         remote_host: ruca.wakehealth.edu
         remote_user: mattperkinsee
-        path: build/
+        path: dist/
         remote_key: ${{ secrets.PROD_VM_SSH_PRIVATE_KEY }}
 
     - name: Cleanup build files
-      run: rm -rf build/
+      run: rm -rf dist/

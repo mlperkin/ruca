@@ -24,3 +24,4 @@ yarn-error.log*
 *.zip
 .env
 .env.production
+dist/

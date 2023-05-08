@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-pascal-case */
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Alert,
   Collapse,
@@ -10,7 +10,7 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { Box } from "@mui/system";
+import Box from "@mui/material/Box";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 // import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
@@ -36,11 +36,17 @@ import MaterialReactTable, {
 import PrintIcon from "@mui/icons-material/Print";
 import { useTheme } from "@mui/material/styles";
 
-const RucaPage = ({ mode, runTour, setRunTour }) => {
+const RucaPage = ({
+  mode,
+  runTour,
+  setRunTour,
+  showAllFlag,
+  setShowAllFlag,
+}) => {
   const [inputValue, setInputValue] = useState("");
   const [results, setResults] = useState([]);
   const [validationMessage, setValidationMessage] = useState("");
-  const [showAllFlag, setShowAllFlag] = useState(false);
+  // const [showAllFlag, setShowAllFlag] = useState(false);
   const [allRucaData, setAllRucaData] = useState([]);
   const [highlightedZipCodes, setHighlightedZipCodes] = useState([]);
 
@@ -53,7 +59,6 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
   // const [run, setRun] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
 
-
   let _showAllFlag = useRef(false);
 
   // Access the theme object
@@ -64,16 +69,17 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
       target: ".my-first-step",
       content:
         "Add a singular ZIP or a list of ZIP codes. Either separated by spaces or commas. You can also add more granular (ZIP+4) ZIP codes",
-        disableBeacon: true,
-          // disableOverlayClose: true,
-          // hideCloseButton: true,
-          // hideFooter: true,
-          placement: 'top',
-          spotlightClicks: true,
+      disableBeacon: true,
+      // disableOverlayClose: true,
+      // hideCloseButton: true,
+      // hideFooter: true,
+      placement: "top",
+      spotlightClicks: true,
     },
     {
       target: ".my-second-step",
-      content: "Toggle between all the ZIP codes data available and your ZIP list",
+      content:
+        "Toggle between all the ZIP codes data available and your ZIP list",
     },
     {
       target: ".my-third-step",
@@ -104,8 +110,8 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
     if (status === "finished" || status === "skipped") {
       // If the tour is finished or skipped, stop running the tour
       // setRun(false);
-      setRunTour(false)
-      setStepIndex(0)
+      setRunTour(false);
+      setStepIndex(0);
       localStorage.setItem("runTour", false);
     } else if (type === "step:after" && action !== "prev") {
       // Update the step index when the user progresses to the next step
@@ -172,7 +178,6 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
     {
       header: "Combined Results",
       accessorKey: "combinedResults",
-      Cell: CombinedResultsCell,
     },
     {
       header: "Zip",
@@ -224,8 +229,8 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
   useEffect(() => {
     const _runTour = localStorage.getItem("runTour");
 
-    if (_runTour !== 'false') {
-      setRunTour(true)
+    if (_runTour !== "false") {
+      setRunTour(true);
       setStepIndex(0);
     } else {
       // setRunTour(false)
@@ -235,7 +240,7 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
       // Get the latest version identifier from your server.
       // You need to host the identifier somewhere, e.g., as a separate file or as part of an API response.
       const latestVersion = await fetch(
-        process.env.PUBLIC_URL + "/zipRucaDataVersion.txt"
+        import.meta.env.VITE_PUBLIC_URL + "/zipRucaDataVersion.txt"
       ).then((res) => res.text());
 
       const storedVersion = localStorage.getItem("rawDataVersion");
@@ -243,7 +248,7 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
 
       // If the stored version is different from the latest version, update the data.
       if (latestVersion !== storedVersion || !storedRawData) {
-        fetch(process.env.PUBLIC_URL + "/zipRucaData.csv")
+        fetch(import.meta.env.VITE_PUBLIC_URL + "/zipRucaData.csv")
           .then((response) => response.text())
           .then((text) => {
             Papa.parse(text, {
@@ -277,7 +282,7 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
     };
 
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const exportToCSV = () => {
@@ -490,6 +495,7 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
     _showAllFlag.current = !_showAllFlag.current;
     if (_showAllFlag.current) {
       setShowAllFlag(true);
+      setRunTour(false);
     } else {
       setShowAllFlag(false);
     }
@@ -524,8 +530,22 @@ const RucaPage = ({ mode, runTour, setRunTour }) => {
   };
 
   // Determine the data source based on the value of showAllFlag
-  const dataToRender = showAllFlag ? allRucaData : results;
-
+  let dataToRender = showAllFlag ? allRucaData : results;
+  if (!showAllFlag) {
+    // Modify your data to include the 'combinedResults' property. This is for the click to copy to work
+    dataToRender = dataToRender.map((row) => {
+      return {
+        ...row,
+        combinedResults: [
+          row.ZIP_CODE,
+          row.RUCA1,
+          row.RUCA2,
+          row.STATE,
+          row.ZIP_TYPE,
+        ].join(", "),
+      };
+    });
+  }
   // Use a media query to check if the viewport width is greater than or equal to 768 pixels
   const isTabletOrLarger = useMediaQuery("(min-width:768px)");
 

@@ -1,5 +1,5 @@
-import * as React from "react";
-import PropTypes from "prop-types";
+// import * as React from "react";
+// import PropTypes from "prop-types";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -13,12 +13,12 @@ import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
-import HelpIcon from '@mui/icons-material/Help';
+import HelpIcon from "@mui/icons-material/Help";
 
 const drawerWidth = 240;
 
 function DrawerAppBar(props) {
-  const { window, toggleColorMode, setRunTour } = props;
+  const { window, toggleColorMode, showAllFlag, setRunTour } = props;
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const theme = useTheme();
@@ -26,9 +26,9 @@ function DrawerAppBar(props) {
     setMobileOpen((prevState) => !prevState);
   };
 
-  function showRunTour(){
+  function showRunTour() {
     localStorage.setItem("runTour", true);
-    setRunTour(true)
+    setRunTour(true);
   }
 
   const drawer = (
@@ -69,20 +69,20 @@ function DrawerAppBar(props) {
           >
             RUCA Zip Search
           </Typography>
-          <Box
-            sx={{ display: { xs: "none", sm: "block" } }}
-          >
-            <IconButton
-            className={'my-seventh-step'}
-              sx={{ ml: 1 }}
-              onClick={showRunTour}
-              color="inherit"
-            >
-              <HelpIcon />
-            </IconButton>
+          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+            {!showAllFlag && (
+              <IconButton
+                className={"my-seventh-step"}
+                sx={{ ml: 1 }}
+                onClick={showRunTour}
+                color="inherit"
+              >
+                <HelpIcon />
+              </IconButton>
+            )}
 
             <IconButton
-            className={'my-sixth-step'}
+              className={"my-sixth-step"}
               sx={{ ml: 1 }}
               onClick={toggleColorMode}
               color="inherit"
@@ -120,12 +120,12 @@ function DrawerAppBar(props) {
   );
 }
 
-DrawerAppBar.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
-  window: PropTypes.func,
-};
+// DrawerAppBar.propTypes = {
+//   /**
+//    * Injected by the documentation to work in an iframe.
+//    * You won't need it on your project.
+//    */
+//   window: PropTypes.func,
+// };
 
 export default DrawerAppBar;
