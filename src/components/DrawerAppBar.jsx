@@ -3,7 +3,7 @@
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
+import { Divider } from "@mui/material";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
@@ -32,11 +32,34 @@ function DrawerAppBar(props) {
   }
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
+    <Box
+      onClick={handleDrawerToggle}
+      sx={{
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center", // This will center the content horizontally.
+        marginTop: "10px",
+      }}
+    >
+      <Box sx={{ textAlign: "center", display: "flex" }}>
+        <Box
+          component="img"
+          src="/ruca_logo256.png"
+          alt="RUCA Logo"
+          sx={{
+            width: 50,
+            height: "auto",
+            marginRight: "8px",
+            textAlign: "center",
+            display: { xs: "block" },
+          }}
+        />
+      </Box>
       <Typography variant="h6" sx={{ my: 2 }}>
         RUCA Zip Search
       </Typography>
-      <Divider />
+      <Divider style={{width:'100%'}} />
       <List>
         <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
           {theme.palette.mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
@@ -62,6 +85,17 @@ function DrawerAppBar(props) {
           >
             <MenuIcon />
           </IconButton>
+          <Box
+            component="img"
+            src="/ruca_logo256.png"
+            alt="RUCA Logo"
+            sx={{
+              width: 50,
+              height: "auto",
+              marginRight: "8px",
+              display: { xs: "none", sm: "block" },
+            }}
+          />
           <Typography
             variant="h6"
             component="div"

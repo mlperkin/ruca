@@ -92,7 +92,7 @@ const Cards = ({ data, removeRow }) => {
                 {getBackgroundColorBasedOnRuca(item.RUCA1).icon}
                 {" "}{item.ZIP_CODE}
               </Typography>
-              <Divider  />
+              <Divider style={{width:'100%', backgroundColor: '#cdcdcd'}} />
               <Typography variant="h6" gutterBottom>
               Combined:{" "} 
               <Typography variant="subtitle1" component="span">
@@ -132,7 +132,7 @@ const Cards = ({ data, removeRow }) => {
                 </Typography>
               </Typography>
             </CardContent>
-            <Divider sx={{ marginBottom: '20px'}} />
+            <Divider style={{width:'100%', backgroundColor: '#cdcdcd', marginBottom: '20px'}} />
             <CardActions sx={{ padding: "0 24px 16px" }}>
               <Tooltip title="Remove">
                 <IconButton
