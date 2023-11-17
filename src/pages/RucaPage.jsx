@@ -35,6 +35,7 @@ import MaterialReactTable, {
 } from "material-react-table";
 import PrintIcon from "@mui/icons-material/Print";
 import { useTheme } from "@mui/material/styles";
+import RucaInfo from "../components/RucaInfo";
 
 const RucaPage = ({
   mode,
@@ -174,6 +175,54 @@ const RucaPage = ({
     );
   };
 
+  const getRucaDescription = (rucaValue, rucaType) => {
+    // Define your RUCA descriptions mapping
+    let rucaDescriptions = {};
+
+    if (rucaType === "ruca1") {
+      rucaDescriptions = {
+        1: "Metropolitan area core: primary flow within an urbanized area (UA)",
+        2: "Metropolitan area high commuting: primary flow 30% or more to a UA",
+        3: "Metropolitan area low commuting: primary flow 10% to 30% to a UA",
+        4: "Micropolitan area core: primary flow within an Urban Cluster of 10,000 to 49,999 (large UC)",
+        5: "Micropolitan high commuting: primary flow 30% or more to a large UC",
+        6: "Micropolitan low commuting: primary flow 10% to 30% to a large UC",
+        7: "Small town core: primary flow within an Urban Cluster of 2,500 to 9,999 (small UC)",
+        8: "Small town high commuting: primary flow 30% or more to a small UC",
+        9: "Small town low commuting: primary flow 10% to 30% to a small UC",
+        10: "Rural areas: primary flow to a tract outside a UA or UC",
+        99: "Not coded: Census tract has zero population and no rural-urban identifier information",
+      };
+    } else if (rucaType === "ruca2") {
+      rucaDescriptions = {
+        1: "Metropolitan area core: primary flow within an urbanized area (UA)",
+        1.1: "Secondary flow 30% to 50% to a larger UA",
+        2: "Metropolitan area high commuting: primary flow 30% or more to a UA",
+        2.1: "Secondary flow 30% to 50% to a larger UA",
+        3: "Metropolitan area low commuting: primary flow 10% to 30% to a UA",
+        4: "Micropolitan area core: primary flow within an Urban Cluster of 10,000 to 49,999 (large UC)",
+        4.1: "Secondary flow 30% to 50% to a UA",
+        5: "Micropolitan high commuting: primary flow 30% or more to a large UC",
+        5.1: "Secondary flow 30% to 50% to a UA",
+        6: "Micropolitan low commuting: primary flow 10% to 30% to a large UC",
+        7: "Small town core: primary flow within an Urban Cluster of 2,500 to 9,999 (small UC)",
+        7.1: "Secondary flow 30% to 50% to a UA",
+        7.2: "Secondary flow 30% to 50% to a large UC",
+        8: "Small town high commuting: primary flow 30% or more to a small UC",
+        8.1: "Secondary flow 30% to 50% to a UA",
+        8.2: "Secondary flow 30% to 50% to a large UC",
+        9: "Small town low commuting: primary flow 10% to 30% to a small UC",
+        10: "Rural areas: primary flow to a tract outside a UA or UC",
+        10.1: "Secondary flow 30% to 50% to a UA",
+        10.2: "Secondary flow 30% to 50% to a large UC",
+        10.3: "Secondary flow 30% to 50% to a small UC",
+        99: "Not coded: Census tract has zero population and no rural-urban identifier information",
+      };
+    }
+
+    return rucaDescriptions[rucaValue] || "Description not available";
+  };
+
   const columns = [
     {
       header: "Combined Results",
@@ -182,11 +231,30 @@ const RucaPage = ({
     {
       header: "Zip",
       accessorKey: "ZIP_CODE",
+      enableClickToCopy: false,
     },
-    { header: "RUCA1", accessorKey: "RUCA1" },
-    { header: "RUCA2", accessorKey: "RUCA2" },
-    { header: "State", accessorKey: "STATE" },
-    { header: "Zip Type", accessorKey: "ZIP_TYPE" },
+    {
+      header: "RUCA1",
+      accessorKey: "RUCA1",
+      enableClickToCopy: false,
+      Cell: ({ cell }) => (
+        <Tooltip title={getRucaDescription(cell.getValue(), "ruca1")} arrow>
+          <span>{cell.getValue()}</span>
+        </Tooltip>
+      ),
+    },
+    {
+      header: "RUCA2",
+      accessorKey: "RUCA2",
+      enableClickToCopy: false,
+      Cell: ({ cell }) => (
+        <Tooltip title={getRucaDescription(cell.getValue(), "ruca2")} arrow>
+          <span>{cell.getValue()}</span>
+        </Tooltip>
+      ),
+    },
+    { header: "State", accessorKey: "STATE", enableClickToCopy: false },
+    { header: "Zip Type", accessorKey: "ZIP_TYPE", enableClickToCopy: false },
     ...(_showAllFlag.current
       ? []
       : [

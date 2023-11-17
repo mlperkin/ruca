@@ -14,6 +14,7 @@ import { useTheme } from "@mui/material/styles";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import HelpIcon from "@mui/icons-material/Help";
+import RucaInfo from "./RucaInfo";
 
 const drawerWidth = 240;
 
@@ -75,6 +76,7 @@ function DrawerAppBar(props) {
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
       <AppBar component="nav">
+       
         <Toolbar>
           <IconButton
             color="inherit"
@@ -103,6 +105,7 @@ function DrawerAppBar(props) {
           >
             RUCA Zip Search
           </Typography>
+          <RucaInfo/>
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
             {!showAllFlag && (
               <IconButton
