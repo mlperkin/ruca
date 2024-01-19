@@ -7,7 +7,7 @@ import Box from "@mui/material/Box";
 
 const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
-function App({mode, runTour, setRunTour, showAllFlag, setShowAllFlag}) {
+function App({ mode, runTour, setRunTour, showAllFlag, setShowAllFlag }) {
   const colorMode = useContext(ColorModeContext);
 
   return (
@@ -17,8 +17,19 @@ function App({mode, runTour, setRunTour, showAllFlag, setShowAllFlag}) {
         color: "text.primary",
       }}
     >
-      <DrawerAppBar toggleColorMode={colorMode.toggleColorMode} runTour={runTour} setRunTour={setRunTour} showAllFlag={showAllFlag} />
-      <RucaPage mode={mode} runTour={runTour} setRunTour={setRunTour} setShowAllFlag={setShowAllFlag} showAllFlag={showAllFlag}/>
+      <DrawerAppBar
+        toggleColorMode={colorMode.toggleColorMode}
+        runTour={runTour}
+        setRunTour={setRunTour}
+        showAllFlag={showAllFlag}
+      />
+      <RucaPage
+        mode={mode}
+        runTour={runTour}
+        setRunTour={setRunTour}
+        setShowAllFlag={setShowAllFlag}
+        showAllFlag={showAllFlag}
+      />
     </Box>
   );
 }
@@ -28,8 +39,7 @@ export default function ToggleColorMode() {
   const initialMode = storedColorPref ? JSON.parse(storedColorPref) : "light";
   const [mode, setMode] = useState(initialMode);
   const [runTour, setRunTour] = useState(false);
-  const [showAllFlag, setShowAllFlag] = useState(false)
-
+  const [showAllFlag, setShowAllFlag] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("colorPref", JSON.stringify(mode));
@@ -48,17 +58,25 @@ export default function ToggleColorMode() {
     () =>
       createTheme({
         palette: {
-          mode,
+          mode: mode, // mode can be 'light' or 'dark'
+          primary: {
+            main: "rgb(0, 140, 149)",
+          },
         },
       }),
     [mode]
   );
-
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App mode={mode} runTour={runTour} setRunTour={setRunTour} showAllFlag={showAllFlag} setShowAllFlag={setShowAllFlag}/>
+        <App
+          mode={mode}
+          runTour={runTour}
+          setRunTour={setRunTour}
+          showAllFlag={showAllFlag}
+          setShowAllFlag={setShowAllFlag}
+        />
       </ThemeProvider>
     </ColorModeContext.Provider>
   );
