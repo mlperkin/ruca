@@ -11,12 +11,8 @@ import {
   Typography,
 } from "@mui/material";
 import Box from "@mui/material/Box";
-import Papa from "papaparse";
-import { saveAs } from "file-saver";
-// import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
-import { Workbook } from "exceljs";
 import csvIcon from "../assets/csv.png";
 import xlsxIcon from "../assets/xlsx.png";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -35,7 +31,8 @@ import MaterialReactTable, {
 } from "material-react-table";
 import PrintIcon from "@mui/icons-material/Print";
 import { useTheme } from "@mui/material/styles";
-import RucaInfo from "../components/RucaInfo";
+import { exportToCSV, exportToXLSX } from "../utils/functions";
+import InfoIcon from "@mui/icons-material/Info";
 
 const RucaPage = ({
   mode,
@@ -45,7 +42,7 @@ const RucaPage = ({
   setShowAllFlag,
 }) => {
   const [inputValue, setInputValue] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState([]); //basic RUCA data
   const [validationMessage, setValidationMessage] = useState("");
   // const [showAllFlag, setShowAllFlag] = useState(false);
   const [allRucaData, setAllRucaData] = useState([]);
@@ -144,16 +141,6 @@ const RucaPage = ({
     return { validZipCodes, invalidZipCodes };
   }
 
-  const CombinedResultsCell = ({ cell, row }) => {
-    return [
-      row.original.ZIP_CODE,
-      row.original.RUCA1,
-      row.original.RUCA2,
-      row.original.STATE,
-      row.original.ZIP_TYPE,
-    ].join(", ");
-  };
-
   const RemoveRowCell = ({ cell, row }) => {
     return (
       <Tooltip title="Remove">
@@ -229,6 +216,20 @@ const RucaPage = ({
       accessorKey: "combinedResults",
     },
     {
+      header: "Counties",
+      accessorKey: "counties",
+      enableClickToCopy: false,
+      Cell: ({ cell }) => {
+        // Extract county names from the array
+        const counties = cell.getValue();
+        const countyNames = counties
+          .map((county) => county["County Name"])
+          .join(", ");
+        return <span>{countyNames}</span>; // Display as a comma-separated list
+      },
+    },
+
+    {
       header: "Zip",
       accessorKey: "ZIP_CODE",
       enableClickToCopy: false,
@@ -239,7 +240,17 @@ const RucaPage = ({
       enableClickToCopy: false,
       Cell: ({ cell }) => (
         <Tooltip title={getRucaDescription(cell.getValue(), "ruca1")} arrow>
-          <span>{cell.getValue()}</span>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              cursor: "pointer",
+            }}
+          >
+            {cell.getValue()}
+            <InfoIcon fontSize="small" />
+          </span>
         </Tooltip>
       ),
     },
@@ -314,25 +325,19 @@ const RucaPage = ({
       const storedVersion = localStorage.getItem("rawDataVersion");
       const storedRawData = localStorage.getItem("rawData");
 
+      //First get basic RUCA data
       // If the stored version is different from the latest version, update the data.
       if (latestVersion !== storedVersion || !storedRawData) {
-        fetch("/zipRucaData.csv")
-          .then((response) => response.text())
-          .then((text) => {
-            Papa.parse(text, {
-              header: true,
-              complete: (results) => {
-                // setData(results.data);
-                setAllRucaData(results.data);
-                localStorage.setItem("rawData", JSON.stringify(results.data));
-                localStorage.setItem("rawDataVersion", latestVersion);
-              },
-              error: (err) => {
-                console.error("Error parsing the CSV:", err);
-              },
-            });
+        fetch("/data/combined_dataset.json")
+          .then((response) => response.json())
+          .then((jsonData) => {
+            setAllRucaData(jsonData);
+            // localStorage.setItem("rawData", JSON.stringify(jsonData));
+            localStorage.setItem("rawDataVersion", latestVersion);
           })
-          .catch((error) => console.error("Error fetching the CSV:", error));
+          .catch((error) => {
+            console.error("Error loading JSON data:", error);
+          });
       } else {
         // setData(JSON.parse(storedRawData));
         setAllRucaData(JSON.parse(storedRawData));
@@ -352,72 +357,6 @@ const RucaPage = ({
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const exportToCSV = () => {
-    // Convert the results array to CSV format using papaparse
-    const csvData = Papa.unparse(results);
-
-    // Create a Blob from the CSV data
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-
-    // Use FileSaver to save the generated CSV file
-    saveAs(blob, "rucaZIP_Export.csv");
-  };
-
-  const exportToXLSX = async () => {
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet("Sheet1");
-
-    // Write data to the worksheet
-    worksheet.columns = Object.keys(results[0]).map((key) => ({
-      header: key,
-      key,
-    }));
-    worksheet.addRows(results);
-
-    // Set the width of the ZIP_TYPE column
-    const zipTypeColumnIndex = worksheet.columns.findIndex(
-      (column) => column.key === "ZIP_TYPE"
-    );
-    if (zipTypeColumnIndex !== -1) {
-      const zipTypeColumn = worksheet.getColumn(zipTypeColumnIndex + 1); // +1 to account for zero-based index
-      zipTypeColumn.width = 35;
-    }
-
-    // Iterate through each row and column to format cells
-    results.forEach((row, rowIndex) => {
-      Object.keys(row).forEach((colKey, colIndex) => {
-        const cell = worksheet.getCell(rowIndex + 2, colIndex + 1); // +2 and +1 to account for header and zero-based index
-        const cellValue = row[colKey];
-        if (["RUCA1", "RUCA2"].includes(colKey) && !isNaN(cellValue)) {
-          // Set the value and data type for RUCA1 and RUCA2 columns
-          cell.value = Number(cellValue); // Convert cellValue to a number
-        }
-      });
-    });
-
-    // Bold the header row
-    worksheet.getRow(1).font = { bold: true };
-
-    // Freeze the header row
-    worksheet.views = [
-      {
-        state: "frozen",
-        xSplit: 0,
-        ySplit: 1,
-        activeCell: "A2",
-      },
-    ];
-
-    // Export the workbook to a buffer
-    const buffer = await workbook.xlsx.writeBuffer();
-
-    // Save the buffer as a .xlsx file
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    saveAs(blob, "rucaZIP_Export.xlsx");
-  };
 
   const removeRow = (zipCodeToRemove) => {
     // Filter out the object with the matching ZIP_CODE from the results array
@@ -490,7 +429,7 @@ const RucaPage = ({
         newZipNotFounds.push({ zip, closestMatch });
       }
 
-      const newUniqueData = matchingData.filter((newItem) => {
+      const newUniqueData = matchingData.filter(async (newItem) => {
         const duplicate = updatedResults.some(
           (existingItem) => existingItem.ZIP_CODE === newItem.ZIP_CODE
         );
@@ -511,6 +450,7 @@ const RucaPage = ({
 
     setResults(updatedResults);
     setInputValue("");
+
     localStorage.setItem("resultsData", JSON.stringify(updatedResults));
 
     setHasDuplicates(newHasDuplicates);
@@ -928,7 +868,7 @@ const RucaPage = ({
                   )}
                   <Box className="my-fourth-step">
                     <Tooltip title={"Export to CSV"} placement="top">
-                      <Button onClick={exportToCSV}>
+                      <Button onClick={() => exportToCSV(results)}>
                         <img
                           src={csvIcon}
                           alt="Export to CSV"
@@ -953,7 +893,7 @@ const RucaPage = ({
           {!isTabletOrLarger && !showAllFlag && (
             <>
               <Tooltip title={"Export to CSV"} placement="top">
-                <Button onClick={exportToCSV}>
+                <Button onClick={() => exportToCSV(results)}>
                   <img
                     src={csvIcon}
                     alt="Export to CSV"
@@ -962,7 +902,7 @@ const RucaPage = ({
                 </Button>
               </Tooltip>
               <Tooltip title={"Export to XLSX"} placement="top">
-                <Button onClick={exportToXLSX}>
+                <Button onClick={() => exportToXLSX(results)}>
                   <img
                     src={xlsxIcon}
                     alt="Export to XLSX"

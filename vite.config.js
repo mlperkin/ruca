@@ -11,4 +11,7 @@ export default {
   esbuild: {
     jsxInject: `import React from 'react'`,
   },
+  server: {
+    open: true, // Automatically opens the app in the default browser
+  },
 };
