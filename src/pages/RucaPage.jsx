@@ -323,11 +323,11 @@ const RucaPage = ({
       );
 
       const storedVersion = localStorage.getItem("rawDataVersion");
-      const storedRawData = localStorage.getItem("rawData");
+      // const storedRawData = localStorage.getItem("rawData");
 
       //First get basic RUCA data
       // If the stored version is different from the latest version, update the data.
-      if (latestVersion !== storedVersion || !storedRawData) {
+      if (latestVersion !== storedVersion ) {
         fetch("/data/combined_dataset.json")
           .then((response) => response.json())
           .then((jsonData) => {
@@ -340,7 +340,7 @@ const RucaPage = ({
           });
       } else {
         // setData(JSON.parse(storedRawData));
-        setAllRucaData(JSON.parse(storedRawData));
+        // setAllRucaData(JSON.parse(storedRawData));
       }
 
       const storedResultsData = localStorage.getItem("resultsData");
