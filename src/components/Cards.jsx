@@ -75,29 +75,44 @@ const Cards = ({ data, removeRow }) => {
     }
   };
 
+  console.log("data", data);
+
+  const showCounties = (counties) => {
+    if (!counties || counties.length === 0) {
+      return "No counties available"; // Handle case where counties is undefined or empty
+    }
+    return counties.map((county) => county["County Name"]).join(", ");
+  };
+
   return (
     <Grid container spacing={2} justifyContent="center">
       {data.map((item, index) => (
-        <Grid item xs={12} sm={6} md={4} key={index} sx={{marginTop: '20px'}}>
+        <Grid item xs={12} sm={6} md={4} key={index} sx={{ marginTop: "20px" }}>
           <Card
             elevation={3}
             sx={{
               minWidth: 250,
-              background: getBackgroundColorBasedOnRuca(item.RUCA1).color,
-              color: "#000000",
+              // background: getBackgroundColorBasedOnRuca(item.RUCA1).color,
+              // color: "#000000",
             }}
           >
             <CardContent sx={{ padding: "16px 24px" }}>
               <Typography variant="h6" gutterBottom fontWeight="bold">
-                {getBackgroundColorBasedOnRuca(item.RUCA1).icon}
-                {" "}{item.ZIP_CODE}
+                {/* {getBackgroundColorBasedOnRuca(item.RUCA1).icon} */}{" "}
+                {item.ZIP_CODE}
               </Typography>
-              <Divider style={{width:'100%', backgroundColor: '#cdcdcd'}} />
+              <Divider style={{ width: "100%", backgroundColor: "#cdcdcd" }} />
               <Typography variant="h6" gutterBottom>
-              Combined:{" "} 
-              <Typography variant="subtitle1" component="span">
-                {item.ZIP_CODE},{item.RUCA1},{item.RUCA2},{item.STATE},
-                {item.ZIP_TYPE}
+                Combined:{" "}
+                <Typography variant="subtitle1" component="span">
+                  {item.ZIP_CODE},{item.RUCA1},{item.RUCA2},{item.STATE},
+                  {item.ZIP_TYPE}
+                </Typography>
+              </Typography>
+              <Typography variant="h6" gutterBottom>
+                Counties: 
+                <Typography variant="subtitle1" component="span">
+                {showCounties(item.counties)}
                 </Typography>
               </Typography>
               {/* Add similar formatting for the other fields */}
@@ -132,7 +147,13 @@ const Cards = ({ data, removeRow }) => {
                 </Typography>
               </Typography>
             </CardContent>
-            <Divider style={{width:'100%', backgroundColor: '#cdcdcd', marginBottom: '20px'}} />
+            <Divider
+              style={{
+                width: "100%",
+                backgroundColor: "#cdcdcd",
+                marginBottom: "20px",
+              }}
+            />
             <CardActions sx={{ padding: "0 24px 16px" }}>
               <Tooltip title="Remove">
                 <IconButton

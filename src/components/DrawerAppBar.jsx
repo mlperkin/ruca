@@ -3,7 +3,7 @@
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Divider } from "@mui/material";
+import { Divider, Grid } from "@mui/material";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
@@ -46,10 +46,10 @@ function DrawerAppBar(props) {
       <Box sx={{ textAlign: "center", display: "flex" }}>
         <Box
           component="img"
-          src="/ruca_logo256.png"
+          src="/header-logo.png"
           alt="RUCA Logo"
           sx={{
-            width: 50,
+            width: 150,
             height: "auto",
             marginRight: "8px",
             textAlign: "center",
@@ -60,7 +60,7 @@ function DrawerAppBar(props) {
       <Typography variant="h6" sx={{ my: 2 }}>
         RUCA Zip Search
       </Typography>
-      <Divider style={{width:'100%'}} />
+      <Divider style={{ width: "100%" }} />
       <List>
         <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
           {theme.palette.mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
@@ -73,10 +73,9 @@ function DrawerAppBar(props) {
     window !== undefined ? () => window().document.body : undefined;
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", flexDirection: "column",}}>
       <CssBaseline />
       <AppBar component="nav">
-       
         <Toolbar>
           <IconButton
             color="inherit"
@@ -87,17 +86,6 @@ function DrawerAppBar(props) {
           >
             <MenuIcon />
           </IconButton>
-          <Box
-            component="img"
-            src="/ruca_logo256.png"
-            alt="RUCA Logo"
-            sx={{
-              width: 50,
-              height: "auto",
-              marginRight: "8px",
-              display: { xs: "none", sm: "block" },
-            }}
-          />
           <Typography
             variant="h6"
             component="div"
@@ -105,7 +93,7 @@ function DrawerAppBar(props) {
           >
             RUCA Zip Search
           </Typography>
-          <RucaInfo/>
+          <RucaInfo />
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
             {!showAllFlag && (
               <IconButton
@@ -133,36 +121,50 @@ function DrawerAppBar(props) {
           </Box>
         </Toolbar>
       </AppBar>
-      <Box component="nav">
-        <Drawer
-          container={container}
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
+
+      {/* Centered Logo Section */}
+      <Box
+        component="nav"
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Box
+          component="img"
+          src="/header-logo.png"
+          alt="RUCA Logo"
           sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-            },
+            width: 250,
+            mt:10,
+            display: { xs: "none", sm: "block" },
           }}
-        >
-          {drawer}
-        </Drawer>
+        />
       </Box>
+
+      {/* Drawer Section */}
+      <Drawer
+        container={container}
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: "block", sm: "none" },
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
+            width: drawerWidth,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
     </Box>
   );
 }
-
-// DrawerAppBar.propTypes = {
-//   /**
-//    * Injected by the documentation to work in an iframe.
-//    * You won't need it on your project.
-//    */
-//   window: PropTypes.func,
-// };
 
 export default DrawerAppBar;
