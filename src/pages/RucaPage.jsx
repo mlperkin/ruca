@@ -327,7 +327,7 @@ const RucaPage = ({
 
       //First get basic RUCA data
       // If the stored version is different from the latest version, update the data.
-      if (latestVersion !== storedVersion ) {
+      // if (latestVersion !== storedVersion) {
         fetch("/data/combined_dataset.json")
           .then((response) => response.json())
           .then((jsonData) => {
@@ -338,15 +338,40 @@ const RucaPage = ({
           .catch((error) => {
             console.error("Error loading JSON data:", error);
           });
-      } else {
+      // } else {
         // setData(JSON.parse(storedRawData));
         // setAllRucaData(JSON.parse(storedRawData));
+      // }
+      const storedResultsData = localStorage.getItem("resultsData");
+      let parsedResultsData = [];
+
+      // Safely parse and verify the structure
+      try {
+        parsedResultsData = storedResultsData
+          ? JSON.parse(storedResultsData)
+          : [];
+        if (!Array.isArray(parsedResultsData)) {
+          console.warn(
+            "Stored resultsData is not an array. Resetting to empty array."
+          );
+          parsedResultsData = [];
+        }
+      } catch (error) {
+        console.error("Error parsing resultsData from localStorage:", error);
+        parsedResultsData = [];
       }
 
-      const storedResultsData = localStorage.getItem("resultsData");
-      const parsedResultsData = storedResultsData
-        ? JSON.parse(storedResultsData)
-        : [];
+      // Normalize the data
+      parsedResultsData = parsedResultsData.map((entry) => ({
+        ...entry,
+        counties: entry.counties || [], // Ensure `counties` key exists
+      }));
+
+      // Save normalized data back to localStorage
+      localStorage.setItem("resultsData", JSON.stringify(parsedResultsData));
+
+      // Use normalized data
+      console.log("Normalized Results Data:", parsedResultsData);
 
       if (parsedResultsData.length > 0) {
         setShowAllFlag(false);
