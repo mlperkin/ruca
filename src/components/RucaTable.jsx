@@ -15,7 +15,7 @@ import csvIcon from "../assets/csv.png";
 import xlsxIcon from "../assets/xlsx.png";
 import { exportToXLSX, exportToCSV, getRuca, getRucaDescription } from "../utils/functions";
 
-function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTabletOrLarger, highlightedZipCodes, mode}) {
+function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTabletOrLarger, highlightedZipCodes, mode, results}) {
   let _showAllFlag = useRef(false);
 
   const viewAllData = () => {
@@ -333,15 +333,15 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
                 />
               </Button>
             </Tooltip>
-            <Tooltip title={"Export to XLSX"} placement="top">
-              <Button className="my-fourth-step" onClick={exportToXLSX}>
+            {/* <Tooltip title={"Export to XLSX"} placement="top">
+              <Button className="my-fourth-step" onClick={() => exportToXLSX(results)}>
                 <img
                   src={xlsxIcon}
                   alt="Export to XLSX"
                   style={{ width: "32px", height: "32px" }}
                 />
               </Button>
-            </Tooltip>
+            </Tooltip> */}
           </Box>
         </Box>
       )}

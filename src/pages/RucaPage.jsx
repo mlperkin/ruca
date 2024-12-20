@@ -448,6 +448,7 @@ const RucaPage = ({
               isTabletOrLarger={isTabletOrLarger}
               highlightedZipCodes={highlightedZipCodes}
               mode={mode}
+              results={results}
             />
           )}
           {!isTabletOrLarger && !showAllFlag && (
