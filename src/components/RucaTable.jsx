@@ -88,9 +88,10 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
       Cell: ({ cell }) => {
         // Extract county names from the array
         const counties = cell.getValue();
-        const countyNames = counties
+        let countyNames = counties
           .map((county) => county["County Name"])
           .join(", ");
+        if(!countyNames) countyNames = "N/A"
         return <span>{countyNames}</span>; // Display as a comma-separated list
       },
     },
@@ -120,7 +121,7 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
             </span>
           </Tooltip>
           <Box>
-            <Typography sx={{ fontSize: "10px" }}>
+            <Typography sx={{ fontSize: "11px" }}>
               {getRucaDescription(cell.getValue(), "ruca1")}
             </Typography>
           </Box>
@@ -146,7 +147,7 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
             </span>
           </Tooltip>
           <Box>
-            <Typography sx={{ fontSize: "10px" }}>
+            <Typography sx={{ fontSize: "11px" }}>
               {getRucaDescription(cell.getValue(), "ruca2")}
             </Typography>
           </Box>

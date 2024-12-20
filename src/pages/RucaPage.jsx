@@ -127,7 +127,7 @@ const RucaPage = ({
       localStorage.setItem("resultsData", JSON.stringify(parsedResultsData));
 
       // Use normalized data
-      console.log("Normalized Results Data:", parsedResultsData);
+      // console.log("Normalized Results Data:", parsedResultsData);
 
       if (parsedResultsData.length > 0) {
         setShowAllFlag(false);
@@ -183,7 +183,7 @@ const RucaPage = ({
     setHighlightedZipCodes([]);
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     clearAlerts();
     event.preventDefault();
     if (!inputValue) return;
@@ -202,7 +202,7 @@ const RucaPage = ({
     // Create a temporary array for highlighted zip codes
     let tempHighlightedZipCodes = [...highlightedZipCodes];
 
-    validZipCodes.forEach(async (zip) => {
+    for (const zip of validZipCodes) {
       const { matchingData, zipNotFound, closestMatch } = getRuca(
         zip,
         allRucaData
@@ -212,24 +212,23 @@ const RucaPage = ({
         newZipNotFounds.push({ zip, closestMatch });
       }
 
-      const newUniqueData = matchingData.filter(async (newItem) => {
+      // Filter out duplicates in a synchronous manner
+      for (const newItem of matchingData) {
         const duplicate = updatedResults.some(
           (existingItem) => existingItem.ZIP_CODE === newItem.ZIP_CODE
         );
 
         if (duplicate) {
           newHasDuplicates.push({ zip });
-          // Update the temporary array with the new highlighted zip code
+          console.log("dupe!!!", zip);
           tempHighlightedZipCodes.push(zip);
         } else {
+          console.log("new zip added!", zip);
           newZipAddeds.push({ zip });
+          updatedResults.push(newItem); // Add new unique item
         }
-
-        return !duplicate;
-      });
-
-      updatedResults = [...updatedResults, ...newUniqueData];
-    });
+      }
+    }
 
     setResults(updatedResults);
     setInputValue("");
@@ -248,7 +247,7 @@ const RucaPage = ({
 
     setTimeout(() => {
       clearAlerts(); // Clear highlighted zip codes after the timeout
-    }, 15000);
+    }, 10000);
   };
 
   const handleClearAll = () => {
@@ -369,6 +368,7 @@ const RucaPage = ({
                 <TextField
                   {...params}
                   label="Zip Code Search"
+                  placeholder="Ex. 28363, 20500, 27045"
                   variant="outlined"
                   onChange={handleChange}
                   InputProps={{
