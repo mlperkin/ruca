@@ -4,6 +4,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import Typography from "@mui/material/Typography";
 import { Divider } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useState, useEffect, useRef } from "react";
 
 const TooltipContent = () => {
   const listItemStyle = {
@@ -194,6 +195,10 @@ const TooltipContent = () => {
 };
 
 function RucaInfo() {
+  const [open, setOpen] = useState(false);
+  const tooltipRef = useRef(null);
+  const buttonRef = useRef(null);
+
   const CustomWidthTooltip = styled(({ className, ...props }) => (
     <Tooltip {...props} classes={{ popper: className }} />
   ))({
@@ -201,12 +206,54 @@ function RucaInfo() {
       maxWidth: 700,
     },
   });
+
+  const handleTooltipOpen = () => setOpen(true);
+  const handleTooltipClose = () => setOpen(false);
+
+  // Close the tooltip only if the click is outside both the button and tooltip
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        tooltipRef.current &&
+        !tooltipRef.current.contains(event.target) && // Click not inside the tooltip
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target) // Click not on the button
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <CustomWidthTooltip title={<TooltipContent />} arrow>
-      <IconButton>
-        <InfoIcon />
-      </IconButton>
-    </CustomWidthTooltip>
+    <div>
+      <div ref={buttonRef}>
+        <CustomWidthTooltip
+          title={
+            <div ref={tooltipRef}>
+              <TooltipContent />
+            </div>
+          }
+          arrow
+          open={open}
+          disableFocusListener
+          disableHoverListener
+          disableTouchListener
+        >
+          <IconButton
+            color="inherit"
+            onClick={handleTooltipOpen}
+            aria-label="RUCA Info"
+          >
+            <InfoIcon />
+          </IconButton>
+        </CustomWidthTooltip>
+      </div>
+    </div>
   );
 }
 

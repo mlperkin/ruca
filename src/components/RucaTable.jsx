@@ -13,9 +13,28 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
 import csvIcon from "../assets/csv.png";
 import xlsxIcon from "../assets/xlsx.png";
-import { exportToXLSX, exportToCSV, getRuca, getRucaDescription } from "../utils/functions";
+import {
+  exportToXLSX,
+  exportToCSV,
+  getRuca,
+  getRucaDescription,
+} from "../utils/functions";
 
-function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTabletOrLarger, highlightedZipCodes, mode, results}) {
+function RucaTable({
+  showAllFlag,
+  dataToRender,
+  removeRow,
+  handleClearAll,
+  isTabletOrLarger,
+  highlightedZipCodes,
+  mode,
+  results,
+  setShowAllFlag,
+  setRunTour,
+  selectedRatio,
+  ratioLabels,
+  setResults
+}) {
   let _showAllFlag = useRef(false);
 
   const viewAllData = () => {
@@ -27,6 +46,8 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
       setShowAllFlag(false);
     }
   };
+
+ 
 
   // Define a function to get row props based on the row data
   const getRowProps = ({ row }) => {
@@ -70,7 +91,7 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
             backgroundColor: "rgba(0, 0, 0, 0.08)",
           }}
         >
-          <DeleteIcon />
+          <DeleteIcon color="error" />
         </div>
       </Tooltip>
     );
@@ -78,28 +99,41 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
 
   const columns = [
     {
-      header: "Combined Results",
+      header: "Combined",
       accessorKey: "combinedResults",
     },
     {
-      header: "Counties",
+      header: `Counties (${ratioLabels[selectedRatio]})`,
       accessorKey: "counties",
       enableClickToCopy: false,
+      size: 300, // Set the width of the Counties column
       Cell: ({ cell }) => {
-        // Extract county names from the array
         const counties = cell.getValue();
         let countyNames = counties
-          .map((county) => county["County Name"])
-          .join(", ");
-        if(!countyNames) countyNames = "N/A"
-        return <span>{countyNames}</span>; // Display as a comma-separated list
+          .map(
+            (county) =>
+              `${county["County Name"]}:  ${(
+                county[selectedRatio] * 100
+              ).toFixed(2)}%`
+          )
+          .join("\n");
+
+        if (!countyNames) countyNames = "N/A";
+
+        return <span style={{ whiteSpace: "pre-wrap" }}>{countyNames}</span>;
       },
     },
-    { header: "State", accessorKey: "STATE", enableClickToCopy: false },
+    {
+      header: "State",
+      accessorKey: "STATE",
+      enableClickToCopy: false,
+      size: 100, // Set the width of the State column
+    },
     {
       header: "Zip",
       accessorKey: "ZIP_CODE",
       enableClickToCopy: false,
+      size: 100,
     },
     {
       header: "RUCA1",
@@ -164,6 +198,7 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
             accessorKey: "remove",
             Cell: RemoveRowCell,
             enableClickToCopy: false,
+            size: 120,
           },
         ]),
   ];
@@ -187,13 +222,13 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
           sx={{ display: "flex", justifyContent: "space-between" }}
         >
           {/* add custom button to print table  */}
-          <IconButton
+          {/* <IconButton
             onClick={() => {
               window.print();
             }}
           >
             <PrintIcon />
-          </IconButton>
+          </IconButton> */}
           {/* along-side built-in buttons in whatever order you want them */}
           <MRT_ToggleGlobalFilterButton table={table} />
           <MRT_ToggleDensePaddingButton table={table} />
@@ -250,15 +285,15 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
       muiTableHeadProps={{
         sx: (theme) => ({
           "& tr": {
-            backgroundColor: "#4a4a4a",
-            color: "#ffffff",
+            backgroundColor: "rgb(0, 140, 149)",
+            // color: "#ffffff",
           },
         }),
       }}
       muiTableHeadCellProps={{
         sx: (theme) => ({
           div: {
-            backgroundColor: "#4a4a4a",
+            // backgroundColor: "#4a4a4a",
             color: "#ffffff",
           },
         }),
@@ -325,7 +360,7 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
             </>
           )}
           <Box className="my-fourth-step">
-            <Tooltip title={"Export to CSV"} placement="top">
+            {/* <Tooltip title={"Export to CSV"} placement="top">
               <Button onClick={() => exportToCSV(results)}>
                 <img
                   src={csvIcon}
@@ -333,16 +368,19 @@ function RucaTable({ showAllFlag, dataToRender, removeRow, handleClearAll, isTab
                   style={{ width: "32px", height: "32px" }}
                 />
               </Button>
-            </Tooltip>
-            {/* <Tooltip title={"Export to XLSX"} placement="top">
-              <Button className="my-fourth-step" onClick={() => exportToXLSX(results)}>
+            </Tooltip> */}
+            <Tooltip title={"Export to XLSX"} placement="top">
+              <Button
+                className="my-fourth-step"
+                onClick={() => exportToXLSX(results)}
+              >
                 <img
                   src={xlsxIcon}
                   alt="Export to XLSX"
                   style={{ width: "32px", height: "32px" }}
                 />
               </Button>
-            </Tooltip> */}
+            </Tooltip>
           </Box>
         </Box>
       )}

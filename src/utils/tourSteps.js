@@ -21,7 +21,7 @@
     },
     {
       target: ".my-fourth-step",
-      content: "Export table to CSV or XLSX",
+      content: "Export table to Excel",
     },
     {
       target: ".my-fifth-step",

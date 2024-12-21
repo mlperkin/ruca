@@ -4,10 +4,12 @@ import {
   Alert,
   Collapse,
   TextField,
+  Divider,
   Grid,
   Button,
   Tooltip,
   IconButton,
+  Typography,
 } from "@mui/material";
 import Box from "@mui/material/Box";
 
@@ -31,6 +33,7 @@ import {
 } from "../utils/functions";
 import { steps } from "../utils/tourSteps";
 import RucaTable from "../components/RucaTable";
+import Map from "../components/Map";
 
 const RucaPage = ({
   mode,
@@ -54,6 +57,26 @@ const RucaPage = ({
   // Define state variables to control the tour
   // const [run, setRun] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
+
+  const [selectedRatio, setSelectedRatio] = useState("res_ratio");
+
+  // Tooltip descriptions for each ratio type
+  const ratioDescriptions = {
+    res_ratio:
+      "Residential Ratio: The proportion of residential population in the county.",
+    bus_ratio: "Business Ratio: The proportion of businesses in the county.",
+    oth_ratio:
+      "Other Ratio: The proportion of non-residential, non-business entities.",
+    tot_ratio:
+      "Total Ratio: Combined proportion of all categories in the county.",
+  };
+
+  const ratioLabels = {
+    res_ratio: "Residential Ratio",
+    bus_ratio: "Business Ratio",
+    oth_ratio: "Other Ratio",
+    tot_ratio: "Total Ratio",
+  };
 
   // Access the theme object
   const theme = useTheme();
@@ -92,6 +115,7 @@ const RucaPage = ({
         .then((response) => response.json())
         .then((jsonData) => {
           setAllRucaData(jsonData);
+          console.log("json response", jsonData);
         })
         .catch((error) => {
           console.error("Error loading JSON data:", error);
@@ -435,6 +459,47 @@ const RucaPage = ({
               </Collapse>
             ))}
           </form>
+          {/* Ratio Selection Buttons */}
+          <Box
+            sx={{
+              mb: 2,
+              mt: 2,
+              display: "flex",
+              gap: 1,
+              flexDirection: "column",
+            }}
+          > <Divider sx={{ width: "100%", mb: 0 }} />
+            <Typography
+              variant="subtitle1"
+              sx={{
+                // fontWeight: "bold",
+                textAlign: "center",
+                textTransform: "uppercase",
+      
+              }}
+            >
+              County Ratio Type
+            </Typography>
+           
+            {Object.keys(ratioDescriptions).map((ratioKey) => (
+              <Tooltip
+                placement="top"
+                key={ratioKey}
+                title={ratioDescriptions[ratioKey]}
+                arrow
+              >
+                <Button
+                  variant={
+                    selectedRatio === ratioKey ? "contained" : "outlined"
+                  }
+                  onClick={() => setSelectedRatio(ratioKey)}
+                >
+                  {ratioLabels[ratioKey].replace("_", " ").toUpperCase()}
+                </Button>
+              </Tooltip>
+            ))}
+             <Divider sx={{ width: "100%", mb: 2, mt:1 }} />
+          </Box>
         </Grid>
         <Grid item xs={12} md={10}>
           {(isTabletOrLarger || showAllFlag) && (
@@ -447,11 +512,17 @@ const RucaPage = ({
               highlightedZipCodes={highlightedZipCodes}
               mode={mode}
               results={results}
+              setShowAllFlag={setShowAllFlag}
+              setRunTour={setRunTour}
+              selectedRatio={selectedRatio}
+              ratioLabels={ratioLabels}
+              setResults={setResults}
             />
           )}
+
           {!isTabletOrLarger && !showAllFlag && (
             <>
-              <Tooltip title={"Export to CSV"} placement="top">
+              {/* <Tooltip title={"Export to CSV"} placement="top">
                 <Button onClick={() => exportToCSV(results)}>
                   <img
                     src={csvIcon}
@@ -459,7 +530,7 @@ const RucaPage = ({
                     style={{ width: "32px", height: "32px" }}
                   />
                 </Button>
-              </Tooltip>
+              </Tooltip> */}
               <Tooltip title={"Export to XLSX"} placement="top">
                 <Button onClick={() => exportToXLSX(results)}>
                   <img
@@ -470,14 +541,19 @@ const RucaPage = ({
                 </Button>
               </Tooltip>
               <Button
-                variant="outlined"
+                // variant="outlined"
                 color="primary"
                 startIcon={<DeleteSweepIcon />}
                 onClick={handleClearAll}
               >
                 Clear All
               </Button>
-              <Cards data={dataToRender} removeRow={removeRow} />
+              <Cards
+                data={dataToRender}
+                removeRow={removeRow}
+                selectedRatio={selectedRatio}
+                ratioLabels={ratioLabels}
+              />
             </>
           )}
         </Grid>
