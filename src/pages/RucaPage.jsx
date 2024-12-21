@@ -220,10 +220,8 @@ const RucaPage = ({
 
         if (duplicate) {
           newHasDuplicates.push({ zip });
-          console.log("dupe!!!", zip);
           tempHighlightedZipCodes.push(zip);
         } else {
-          console.log("new zip added!", zip);
           newZipAddeds.push({ zip });
           updatedResults.push(newItem); // Add new unique item
         }
