@@ -33,7 +33,7 @@ import {
 } from "../utils/functions";
 import { steps } from "../utils/tourSteps";
 import RucaTable from "../components/RucaTable";
-import Map from "../components/Map";
+import InfoIcon from "@mui/icons-material/Info";
 
 const RucaPage = ({
   mode,
@@ -368,6 +368,23 @@ const RucaPage = ({
         )}
 
         <Grid item xs={12} md={2}>
+          {/* Info Icon */}
+          <Tooltip
+            placement="top"
+            title={
+              <>
+                <Typography variant="body2">
+                  You can enter a single ZIP code (e.g., 27045) or
+                  multiple ZIP codes separated by commas or white spaces.
+                </Typography>
+              </>
+            }
+            arrow
+          >
+            <IconButton>
+              <InfoIcon />
+            </IconButton>
+          </Tooltip>
           <form onSubmit={handleSubmit}>
             <Autocomplete
               className="my-first-step"
@@ -412,6 +429,7 @@ const RucaPage = ({
                 />
               )}
             />
+
             {hasDuplicates.map((duplicate, index) => (
               <Collapse in={true} key={`duplicate-${index}`}>
                 <Alert
@@ -468,19 +486,19 @@ const RucaPage = ({
               gap: 1,
               flexDirection: "column",
             }}
-          > <Divider sx={{ width: "100%", mb: 0 }} />
+          >
+            {" "}
+            <Divider sx={{ width: "100%", mb: 0 }} />
             <Typography
-              variant="subtitle1"
+              variant="subtitle2"
               sx={{
                 // fontWeight: "bold",
                 textAlign: "center",
                 textTransform: "uppercase",
-      
               }}
             >
               County Ratio Type
             </Typography>
-           
             {Object.keys(ratioDescriptions).map((ratioKey) => (
               <Tooltip
                 placement="top"
@@ -498,7 +516,7 @@ const RucaPage = ({
                 </Button>
               </Tooltip>
             ))}
-             <Divider sx={{ width: "100%", mb: 2, mt:1 }} />
+            <Divider sx={{ width: "100%", mb: 2, mt: 1 }} />
           </Box>
         </Grid>
         <Grid item xs={12} md={10}>

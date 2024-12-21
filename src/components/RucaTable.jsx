@@ -260,7 +260,7 @@ function RucaTable({
       }
       muiTableBodyRowProps={getRowProps} //
       muiTablePaginationProps={{
-        rowsPerPageOptions: [5, 10, 25, 100, 500],
+        rowsPerPageOptions: [5, 10, 25, 50],
         showFirstButton: false,
         showLastButton: false,
       }}
