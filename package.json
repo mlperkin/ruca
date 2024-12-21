@@ -15,11 +15,13 @@
     "dexie": "^4.0.10",
     "exceljs": "^4.3.0",
     "file-saver": "^2.0.5",
+    "leaflet": "^1.9.4",
     "material-react-table": "^1.9.2",
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-joyride": "^2.5.3"
+    "react-joyride": "^2.5.3",
+    "react-leaflet": "^4.2.1"
   },
   "scripts": {
     "start": "vite",
