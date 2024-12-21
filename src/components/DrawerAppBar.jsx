@@ -3,7 +3,7 @@
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Divider, Grid } from "@mui/material";
+import { Divider, Grid, Tooltip } from "@mui/material";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
@@ -15,6 +15,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import HelpIcon from "@mui/icons-material/Help";
 import RucaInfo from "./RucaInfo";
+import ApiIcon from "@mui/icons-material/Api";
 
 const drawerWidth = 240;
 
@@ -65,6 +66,16 @@ function DrawerAppBar(props) {
         <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
           {theme.palette.mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
         </IconButton>
+        <IconButton
+          sx={{ ml: 1 }}
+          color="inherit"
+          component="a"
+          href="https://ruca.wakehealth.edu/ruca-api/api-docs/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <ApiIcon />
+        </IconButton>
       </List>
     </Box>
   );
@@ -73,7 +84,7 @@ function DrawerAppBar(props) {
     window !== undefined ? () => window().document.body : undefined;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column",}}>
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
       <CssBaseline />
       <AppBar component="nav">
         <Toolbar>
@@ -96,15 +107,29 @@ function DrawerAppBar(props) {
           <RucaInfo />
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
             {!showAllFlag && (
-              <IconButton
-                className={"my-seventh-step"}
-                sx={{ ml: 1 }}
-                onClick={showRunTour}
-                color="inherit"
-              >
-                <HelpIcon />
-              </IconButton>
+              <Tooltip title="Play Tour">
+                <IconButton
+                  className={"my-seventh-step"}
+                  sx={{ ml: 1 }}
+                  onClick={showRunTour}
+                  color="inherit"
+                >
+                  <HelpIcon />
+                </IconButton>
+              </Tooltip>
             )}
+            <Tooltip title="API Docs">
+              <IconButton
+                sx={{ ml: 1 }}
+                color="inherit"
+                component="a"
+                href="https://ruca.wakehealth.edu/ruca-api/api-docs/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ApiIcon />
+              </IconButton>
+            </Tooltip>
 
             <IconButton
               className={"my-sixth-step"}
@@ -113,9 +138,13 @@ function DrawerAppBar(props) {
               color="inherit"
             >
               {theme.palette.mode === "dark" ? (
-                <LightModeIcon />
+                <Tooltip title="Light Mode">
+                  <LightModeIcon />
+                </Tooltip>
               ) : (
-                <DarkModeIcon />
+                <Tooltip title="Dark Mode">
+                  <DarkModeIcon />
+                </Tooltip>
               )}
             </IconButton>
           </Box>
@@ -138,7 +167,7 @@ function DrawerAppBar(props) {
           alt="RUCA Logo"
           sx={{
             width: 250,
-            mt:10,
+            mt: 10,
             display: { xs: "none", sm: "block" },
           }}
         />
