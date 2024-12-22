@@ -505,6 +505,8 @@ const RucaPage = ({
                 key={ratioKey}
                 title={ratioDescriptions[ratioKey]}
                 arrow
+                enterDelay={1000} // Delay in milliseconds
+                enterNextDelay={1000} 
               >
                 <Button
                   variant={
