@@ -33,7 +33,7 @@ function RucaTable({
   setRunTour,
   selectedRatio,
   ratioLabels,
-  setResults
+  setResults,
 }) {
   let _showAllFlag = useRef(false);
 
@@ -46,8 +46,6 @@ function RucaTable({
       setShowAllFlag(false);
     }
   };
-
- 
 
   // Define a function to get row props based on the row data
   const getRowProps = ({ row }) => {
@@ -103,7 +101,7 @@ function RucaTable({
       accessorKey: "combinedResults",
     },
     {
-      header: `Counties (${ratioLabels[selectedRatio]})`,
+      header: `Counties | ${ratioLabels[selectedRatio]}`,
       accessorKey: "counties",
       enableClickToCopy: false,
       size: 300, // Set the width of the Counties column
@@ -155,7 +153,7 @@ function RucaTable({
             </span>
           </Tooltip>
           <Box>
-            <Typography sx={{ fontSize: "11px" }}>
+            <Typography variant="caption" sx={{ fontWeight: "bold" }}>
               {getRucaDescription(cell.getValue(), "ruca1")}
             </Typography>
           </Box>
@@ -181,7 +179,7 @@ function RucaTable({
             </span>
           </Tooltip>
           <Box>
-            <Typography sx={{ fontSize: "11px" }}>
+            <Typography variant="caption" sx={{ fontWeight: "bold" }}>
               {getRucaDescription(cell.getValue(), "ruca2")}
             </Typography>
           </Box>
@@ -218,7 +216,7 @@ function RucaTable({
       //customize built-in buttons in the top-right of top toolbar
       renderToolbarInternalActions={({ table }) => (
         <Box
-          className="my-fifth-step"
+          className="advanced-table-step"
           sx={{ display: "flex", justifyContent: "space-between" }}
         >
           {/* add custom button to print table  */}
@@ -331,7 +329,7 @@ function RucaTable({
             <>
               <Tooltip title="View All Data" placement="top">
                 <IconButton
-                  className="my-second-step"
+                  className="view-all-data-step"
                   color="primary"
                   onClick={viewAllData}
                   sx={{ width: "60px", height: "60px" }}
@@ -340,7 +338,7 @@ function RucaTable({
                 </IconButton>
               </Tooltip>
               <Button
-                className="my-third-step"
+                className="clear-step"
                 // variant="outlined"
                 color="primary"
                 startIcon={<DeleteSweepIcon />}
@@ -359,7 +357,7 @@ function RucaTable({
               </Typography>
             </>
           )}
-          <Box className="my-fourth-step">
+          <Box>
             {/* <Tooltip title={"Export to CSV"} placement="top">
               <Button onClick={() => exportToCSV(results)}>
                 <img
@@ -371,7 +369,7 @@ function RucaTable({
             </Tooltip> */}
             <Tooltip title={"Export to XLSX"} placement="top">
               <Button
-                className="my-fourth-step"
+                className="export-step"
                 onClick={() => exportToXLSX(results)}
               >
                 <img

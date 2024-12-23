@@ -245,6 +245,7 @@ function RucaInfo() {
           disableTouchListener
         >
           <IconButton
+            className="ruca-codes-step"
             color="inherit"
             onClick={handleTooltipOpen}
             aria-label="RUCA Info"

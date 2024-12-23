@@ -109,7 +109,7 @@ function DrawerAppBar(props) {
             {!showAllFlag && (
               <Tooltip title="Play Tour">
                 <IconButton
-                  className={"my-seventh-step"}
+                  className={"play-tour-step"}
                   sx={{ ml: 1 }}
                   onClick={showRunTour}
                   color="inherit"
@@ -118,8 +118,9 @@ function DrawerAppBar(props) {
                 </IconButton>
               </Tooltip>
             )}
-            <Tooltip title="API Docs">
+            <Tooltip title="API Docs" >
               <IconButton
+               className={"api-docs-step"}
                 sx={{ ml: 1 }}
                 color="inherit"
                 component="a"
@@ -132,7 +133,7 @@ function DrawerAppBar(props) {
             </Tooltip>
 
             <IconButton
-              className={"my-sixth-step"}
+              className={"color-mode-step"}
               sx={{ ml: 1 }}
               onClick={toggleColorMode}
               color="inherit"

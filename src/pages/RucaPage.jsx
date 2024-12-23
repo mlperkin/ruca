@@ -8,6 +8,7 @@ import {
   Grid,
   Button,
   Tooltip,
+  Paper,
   IconButton,
   Typography,
 } from "@mui/material";
@@ -129,9 +130,7 @@ const RucaPage = ({
     if (combinedDataset) {
       setAllRucaData(combinedDataset);
     }
-    getAndSetStoredResults()
-
-  
+    getAndSetStoredResults();
   }, [combinedDataset]);
 
   const getAndSetStoredResults = () => {
@@ -489,48 +488,51 @@ const RucaPage = ({
             ))}
           </form>
           {/* Ratio Selection Buttons */}
-          <Box
-            sx={{
-              mb: 2,
-              mt: 2,
-              display: "flex",
-              gap: 1,
-              flexDirection: "column",
-            }}
-          >
-            {" "}
-            <Divider sx={{ width: "100%", mb: 0 }} />
-            <Typography
-              variant="subtitle2"
+          <Paper elevation={2} sx={{p:2, mt:2}} className="ratio-buttons-step">
+            <Box
               sx={{
-                // fontWeight: "bold",
-                textAlign: "center",
-                textTransform: "uppercase",
+                // mb: 2,
+                // mt: 2,
+                display: "flex",
+                gap: 1,
+                flexDirection: "column",
               }}
             >
-              County Ratio Type
-            </Typography>
-            {Object.keys(ratioDescriptions).map((ratioKey) => (
-              <Tooltip
-                placement="top"
-                key={ratioKey}
-                title={ratioDescriptions[ratioKey]}
-                arrow
-                enterDelay={1000} // Delay in milliseconds
-                enterNextDelay={1000}
+              {" "}
+              {/* <Divider sx={{ width: "100%", mb: 0 }} /> */}
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  textTransform: "uppercase",
+                }}
               >
-                <Button
-                  variant={
-                    selectedRatio === ratioKey ? "contained" : "outlined"
-                  }
-                  onClick={() => setSelectedRatio(ratioKey)}
+                County Ratio Type
+              </Typography>
+                <Divider sx={{ width: "100%" }} />
+              {Object.keys(ratioDescriptions).map((ratioKey) => (
+                <Tooltip
+                  placement="top"
+                  key={ratioKey}
+                  title={ratioDescriptions[ratioKey]}
+                  arrow
+                  enterDelay={1000} // Delay in milliseconds
+                  enterNextDelay={1000}
                 >
-                  {ratioLabels[ratioKey].replace("_", " ").toUpperCase()}
-                </Button>
-              </Tooltip>
-            ))}
-            <Divider sx={{ width: "100%", mb: 2, mt: 1 }} />
-          </Box>
+                  <Button
+                    variant={
+                      selectedRatio === ratioKey ? "contained" : "outlined"
+                    }
+                    onClick={() => setSelectedRatio(ratioKey)}
+                  >
+                    {ratioLabels[ratioKey].replace("_", " ").toUpperCase()}
+                  </Button>
+                </Tooltip>
+              ))}
+              {/* <Divider sx={{ width: "100%", mb: 2, mt: 1 }} /> */}
+            </Box>
+          </Paper>
         </Grid>
         <Grid item xs={12} md={10}>
           {(isTabletOrLarger || showAllFlag) && (

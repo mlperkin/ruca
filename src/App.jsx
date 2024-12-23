@@ -60,6 +60,9 @@ export default function ToggleColorMode() {
   const theme = useMemo(
     () =>
       createTheme({
+        typography: {
+          fontFamily: "Open Sans, Roboto, Arial, sans-serif",
+        },
         palette: {
           mode: mode, // mode can be 'light' or 'dark'
           primary: {
