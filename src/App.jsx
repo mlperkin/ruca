@@ -4,6 +4,9 @@ import RucaPage from "./pages/RucaPage";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -69,14 +72,16 @@ export default function ToggleColorMode() {
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App
-          mode={mode}
-          runTour={runTour}
-          setRunTour={setRunTour}
-          showAllFlag={showAllFlag}
-          setShowAllFlag={setShowAllFlag}
-        />
+        <QueryClientProvider client={queryClient}>
+          <CssBaseline />
+          <App
+            mode={mode}
+            runTour={runTour}
+            setRunTour={setRunTour}
+            showAllFlag={showAllFlag}
+            setShowAllFlag={setShowAllFlag}
+          />
+        </QueryClientProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );

@@ -34,6 +34,8 @@ import {
 import { steps } from "../utils/tourSteps";
 import RucaTable from "../components/RucaTable";
 import InfoIcon from "@mui/icons-material/Info";
+// import MapComponent from "../components/Map";
+import { useQuery } from "@tanstack/react-query";
 
 const RucaPage = ({
   mode,
@@ -100,67 +102,76 @@ const RucaPage = ({
     }
   };
 
+  const {
+    data: combinedDataset,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ["combinedDataset"], // Query key
+    queryFn: async () => {
+      const response = await fetch("/data/combined_dataset.json");
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.json();
+    },
+    staleTime: Infinity, // Cache forever unless invalidated
+    cacheTime: Infinity, // Keep cache even if unused
+  });
+
   useEffect(() => {
     const _runTour = localStorage.getItem("runTour");
 
     if (_runTour !== "false") {
       setRunTour(true);
       setStepIndex(0);
-    } else {
-      // setRunTour(false)
     }
 
-    const fetchData = async () => {
-      fetch("/data/combined_dataset.json")
-        .then((response) => response.json())
-        .then((jsonData) => {
-          setAllRucaData(jsonData);
-          console.log("json response", jsonData);
-        })
-        .catch((error) => {
-          console.error("Error loading JSON data:", error);
-        });
+    // Update state with cached data if available
+    if (combinedDataset) {
+      setAllRucaData(combinedDataset);
+    }
+    getAndSetStoredResults()
 
-      //get previous searched zips "Your Zips" list from localstorage
-      const storedResultsData = localStorage.getItem("resultsData");
-      let parsedResultsData = [];
+  
+  }, [combinedDataset]);
 
-      // Safely parse and verify the structure
-      try {
-        parsedResultsData = storedResultsData
-          ? JSON.parse(storedResultsData)
-          : [];
-        if (!Array.isArray(parsedResultsData)) {
-          console.warn(
-            "Stored resultsData is not an array. Resetting to empty array."
-          );
-          parsedResultsData = [];
-        }
-      } catch (error) {
-        console.error("Error parsing resultsData from localStorage:", error);
+  const getAndSetStoredResults = () => {
+    //get previous searched zips "Your Zips" list from localstorage
+    const storedResultsData = localStorage.getItem("resultsData");
+    let parsedResultsData = [];
+
+    // Safely parse and verify the structure
+    try {
+      parsedResultsData = storedResultsData
+        ? JSON.parse(storedResultsData)
+        : [];
+      if (!Array.isArray(parsedResultsData)) {
+        console.warn(
+          "Stored resultsData is not an array. Resetting to empty array."
+        );
         parsedResultsData = [];
       }
+    } catch (error) {
+      console.error("Error parsing resultsData from localStorage:", error);
+      parsedResultsData = [];
+    }
 
-      // Normalize the data
-      parsedResultsData = parsedResultsData.map((entry) => ({
-        ...entry,
-        counties: entry.counties || [], // Ensure `counties` key exists
-      }));
+    // Normalize the data
+    parsedResultsData = parsedResultsData.map((entry) => ({
+      ...entry,
+      counties: entry.counties || [], // Ensure `counties` key exists
+    }));
 
-      // Save normalized data back to localStorage
-      localStorage.setItem("resultsData", JSON.stringify(parsedResultsData));
+    // Save normalized data back to localStorage
+    localStorage.setItem("resultsData", JSON.stringify(parsedResultsData));
 
-      // Use normalized data
-      // console.log("Normalized Results Data:", parsedResultsData);
+    // Use normalized data
+    // console.log("Normalized Results Data:", parsedResultsData);
 
-      if (parsedResultsData.length > 0) {
-        setShowAllFlag(false);
-        setResults(parsedResultsData);
-      }
-    };
-
-    fetchData();
-  }, []);
+    if (parsedResultsData.length > 0) {
+      setShowAllFlag(false);
+      setResults(parsedResultsData);
+    }
+  };
 
   const removeRow = (zipCodeToRemove) => {
     // Filter out the object with the matching ZIP_CODE from the results array
@@ -374,8 +385,8 @@ const RucaPage = ({
             title={
               <>
                 <Typography variant="body2">
-                  You can enter a single ZIP code (e.g., 27045) or
-                  multiple ZIP codes separated by commas or white spaces.
+                  You can enter a single ZIP code (e.g., 27045) or multiple ZIP
+                  codes separated by commas or white spaces.
                 </Typography>
               </>
             }
@@ -506,7 +517,7 @@ const RucaPage = ({
                 title={ratioDescriptions[ratioKey]}
                 arrow
                 enterDelay={1000} // Delay in milliseconds
-                enterNextDelay={1000} 
+                enterNextDelay={1000}
               >
                 <Button
                   variant={
@@ -577,6 +588,7 @@ const RucaPage = ({
             </>
           )}
         </Grid>
+        {/* <MapComponent results={results} /> */}
       </Grid>
     </Box>
   );
